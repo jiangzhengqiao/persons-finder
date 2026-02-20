@@ -4,10 +4,10 @@ import com.persons.finder.domain.Person;
 import com.persons.finder.dto.LocationUpdateRequest;
 import com.persons.finder.dto.PersonRequest;
 import com.persons.finder.dto.PersonResponse;
-import com.persons.finder.exception.SecurityValidationException;
 import com.persons.finder.mapper.PersonMapper;
 import com.persons.finder.repository.PersonRepository;
 import com.persons.finder.repository.SecurityPatternRepository;
+import com.persons.finder.security.SecurityManager;
 import com.persons.finder.util.GeoUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,8 +16,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Slf4j
 @Service
@@ -28,6 +26,7 @@ public class PersonService {
     private final SecurityPatternRepository securityRepository;
     private final AiClient aiClient;
     private final PersonMapper personMapper;
+    private final SecurityManager securityManager;
 
     @Transactional(readOnly = true)
     public Slice<PersonResponse> findNearby(double lat, double lon, double radiusKm, Pageable pageable) {
@@ -59,20 +58,19 @@ public class PersonService {
 
     @Transactional
     public PersonResponse createPerson(PersonRequest request) {
-        log.info("Creating new person profile for: {}", request.name());
-        validateInputSafety(request.hobbies());
+        String name = request.name();
+        String hobbies = request.hobbies();
+        log.info("Creating new person profile for: {}", name);
 
-        log.debug("Requesting AI bio generation for hobbies: {}", request.hobbies());
+        securityManager.validateInput(hobbies);
+        log.debug("Requesting AI bio generation for hobbies: {}", hobbies);
 
         String rawBio = generateBioWithPromptEngineering(request);
-        String filteredBio = sanitizeAiOutput(rawBio);
-        if (!filteredBio.equals(rawBio)) {
-            log.warn("AI output for user '{}' was sanitized due to security patterns.", request.name());
-        }
+        String filteredBio = securityManager.sanitizeOutput(rawBio);
         Person person = Person.builder()
-                .name(request.name())
+                .name(name)
                 .jobTitle(request.jobTitle())
-                .hobbies(request.hobbies())
+                .hobbies(hobbies)
                 .bio(filteredBio)
                 .latitude(request.latitude())
                 .longitude(request.longitude())
@@ -98,26 +96,5 @@ public class PersonService {
         );
 
         return aiClient.generate(prompt);
-    }
-
-    private void validateInputSafety(String input) {
-        if (input == null) return;
-        List<String> filters = securityRepository.findPatternsByType("INPUT_FILTER");
-        for (String pattern : filters) {
-            if (input.toLowerCase().contains(pattern.toLowerCase())) {
-                throw new SecurityValidationException("Input violates security policy: " + pattern);
-            }
-        }
-    }
-
-    private String sanitizeAiOutput(String rawBio) {
-        List<String> filters = securityRepository.findPatternsByType("OUTPUT_FILTER");
-        for (String pattern : filters) {
-            if (rawBio != null && rawBio.toLowerCase().contains(pattern.toLowerCase())) {
-                log.warn("AI output blocked by pattern: {}", pattern);
-                return "Dedicated professional with a diverse background.";
-            }
-        }
-        return rawBio;
     }
 }
