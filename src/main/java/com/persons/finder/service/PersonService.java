@@ -1,6 +1,7 @@
 package com.persons.finder.service;
 
 import com.persons.finder.domain.Person;
+import com.persons.finder.dto.LocationUpdateRequest;
 import com.persons.finder.dto.PersonResponse;
 import com.persons.finder.repository.PersonRepository;
 import com.persons.finder.repository.SecurityPatternRepository;
@@ -37,11 +38,19 @@ public class PersonService {
     }
 
     @Transactional
-    public void updateLocation(Long id, Double lat, Double lon) {
-        int updatedRows = personRepository.updateLocation(id, lat, lon);
-        if (updatedRows == 0) {
-            throw new RuntimeException("Person with ID " + id + " not found.");
-        }
+    public PersonResponse updateLocation(Long id, LocationUpdateRequest request) {
+        Person person = personRepository.findById(id)
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.NOT_FOUND, "Person not found"));
+
+        person.setLatitude(request.latitude());
+        person.setLongitude(request.longitude());
+
+        // return DTO
+        return new PersonResponse(person.getId(), person.getName(), person.getJobTitle(),
+                person.getHobbies(), person.getBio(),
+                person.getLatitude(), person.getLongitude(),
+                java.time.LocalDateTime.now());
     }
 
     private PersonResponse convertToResponse(Person p) {
