@@ -1,0 +1,40 @@
+server:
+  port: 8080
+  error:
+    include-message: always
+
+app:
+  seed-data: false
+
+spring:
+  application:
+    name: person-finder-ai
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    defer-datasource-initialization: true
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+      max-lifetime: 1200000
+
+logging:
+  level:
+    root: INFO
+    com.persons.finder: DEBUG
+    org.hibernate.SQL: WARN
+    org.springframework.web: INFO
