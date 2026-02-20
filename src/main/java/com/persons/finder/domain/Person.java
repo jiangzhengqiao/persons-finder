@@ -37,6 +37,9 @@ public class Person {
     private Double latitude;
     private Double longitude;
 
+    @Version
+    private Long version;
+
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;

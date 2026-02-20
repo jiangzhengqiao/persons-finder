@@ -5,12 +5,12 @@ import com.persons.finder.dto.LocationUpdateRequest;
 import com.persons.finder.dto.PersonRequest;
 import com.persons.finder.dto.PersonResponse;
 import com.persons.finder.exception.SecurityValidationException;
+import com.persons.finder.mapper.PersonMapper;
 import com.persons.finder.repository.PersonRepository;
 import com.persons.finder.repository.SecurityPatternRepository;
 import com.persons.finder.util.GeoUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -27,6 +27,7 @@ public class PersonService {
     private final PersonRepository personRepository;
     private final SecurityPatternRepository securityRepository;
     private final AiClient aiClient;
+    private final PersonMapper personMapper;
 
     @Transactional(readOnly = true)
     public Slice<PersonResponse> findNearby(double lat, double lon, double radiusKm, Pageable pageable) {
@@ -37,7 +38,7 @@ public class PersonService {
         Pageable distancePageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
         Slice<PersonResponse> results = personRepository.findNearbyEfficiently(
                 lat, lon, radiusKm, box.minLat(), box.maxLat(), box.minLon(), box.maxLon(), distancePageable
-        ).map(this::convertToResponse);
+        ).map(personMapper::toResponse);
 
         log.debug("Found {} results in {}ms", results.getNumberOfElements(), System.currentTimeMillis() - startTime);
         return results;
@@ -53,10 +54,7 @@ public class PersonService {
         person.setLongitude(request.longitude());
 
         // return DTO
-        return new PersonResponse(person.getId(), person.getName(), person.getJobTitle(),
-                person.getHobbies(), person.getBio(),
-                person.getLatitude(), person.getLongitude(),
-                java.time.LocalDateTime.now());
+        return personMapper.toResponse(person);
     }
 
     @Transactional
@@ -80,16 +78,10 @@ public class PersonService {
                 .longitude(request.longitude())
                 .build();
 
-        return convertToResponse(personRepository.save(person));
+        Person saved = personRepository.save(person);
+        return personMapper.toResponse(saved);
     }
 
-    private PersonResponse convertToResponse(Person p) {
-        return new PersonResponse(
-                p.getId(), p.getName(), p.getJobTitle(),
-                p.getHobbies(), p.getBio(), p.getLatitude(),
-                p.getLongitude(), p.getCreatedAt()
-        );
-    }
 
     private String generateBioWithPromptEngineering(PersonRequest request) {
         if (request.hobbies() == null || request.hobbies().isBlank()) {

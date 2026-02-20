@@ -64,8 +64,8 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private void seedPersonData() {
-        String sql = "INSERT INTO persons (name, job_title, hobbies, bio, latitude, longitude, created_at) " +
-                "VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
+        String sql = "INSERT INTO persons (name, job_title, hobbies, bio, latitude, longitude, version, created_at) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
 
         Random random = new Random();
         int totalRecords = 1_000_000;
@@ -82,6 +82,7 @@ public class DataSeeder implements CommandLineRunner {
                     // 随机生成全球坐标 (Lat: -90 to 90, Lon: -180 to 180)
                     ps.setDouble(5, -90 + (180 * random.nextDouble()));
                     ps.setDouble(6, -180 + (360 * random.nextDouble()));
+                    ps.setLong(7, 0L);
                 }
 
                 @Override
