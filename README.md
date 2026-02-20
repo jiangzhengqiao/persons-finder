@@ -188,7 +188,7 @@ Our tests use Mocking, so they will NOT cost any money or AI credits.
 ```
 
 
-### 2. Find Nearby People
+### 3. Update Location
 **PUT** /api/v1/persons/1/location
 ```json
 {
@@ -197,8 +197,25 @@ Our tests use Mocking, so they will NOT cost any money or AI credits.
 }
 ```
 
-## Tech Stack
-#### Java 17 & Spring Boot 2.x
-#### H2 Database (In-memory)
-#### Spring Data JPA (Spatial query with Bounding Box)
-#### Mockito (For cost-free AI testing)
+## 5. Tech Stack
+- Java 17 & Spring Boot 2.x
+- H2 Database (In-memory)
+- Spring Data JPA (Spatial query with Bounding Box)
+- Mockito (For cost-free AI testing)
+
+## Future Optimizations & Considerations
+
+### Code & Architecture
+- **Slice vs. Page:** Currently, the `/nearby` API uses `Page`. This can be slow for large datasets (1M+ rows) because it performs a `COUNT(*)` query. If the frontend doesn't need the total page count, using `Slice` would be much faster as it only checks for the existence of the next page.
+- **Strategy Pattern for Security:** I recommend refactoring security validation into a **Strategy Pattern**. By moving logic out of the Service and into independent `SecurityStrategy` components, we can add new rules (e.g., SQL injection or PII filters) without modifying core business logic.
+- **Security Pattern Caching:** The security methods query the database for patterns on every request. I recommend using **Redis** to cache these patterns at system startup. This prevents unnecessary database pressure and improves response speed.
+
+### Database Scalability
+- **PostGIS:** For a real-world project, I recommend using **PostgreSQL with PostGIS**. It provides a specialized **Spatial Index** for location data, making it much faster and more accurate than performing Haversine calculations in Java code.
+
+### Asynchronous Processing
+- **OpenAI Integration:** Calling OpenAI can be slow. We can make this process **Asynchronous**. Instead of waiting for the AI response, we can send a message to a **Message Queue (MQ)**. A background service would then handle the AI call and update the database later. This ensures instant user responses and system resilience.
+
+### Security & Privacy
+- **Encryption:** Sensitive user data should be encrypted using **AES-256** before being sent to the AI or stored in the database.
+- **Secret Management:** To avoid hardcoding credentials, professional tools like **HashiCorp Vault** or **AWS Secrets Manager** should be used for managing API keys and encryption secrets.
