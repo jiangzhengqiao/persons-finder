@@ -7,6 +7,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.util.Random;
@@ -25,9 +26,10 @@ public class DataSeeder implements CommandLineRunner {
     @Value("${app.seed-data:false}") // default false
     private boolean seedData;
 
+    @Async
     @Override
     public void run(String... args) throws Exception {
-        if ("false".equals(seedData)) {
+        if (!seedData) {
             return;
         }
 
