@@ -1,15 +1,18 @@
 package com.persons.finder.controller;
 
 import com.persons.finder.dto.LocationUpdateRequest;
+import com.persons.finder.dto.PersonRequest;
 import com.persons.finder.dto.PersonResponse;
 import com.persons.finder.service.PersonService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,5 +45,17 @@ public class PersonController {
             @Valid @RequestBody LocationUpdateRequest request) {
 
         return personService.updateLocation(id, request);
+    }
+
+    @PostMapping
+    @Operation(summary = "Create a person", description = "Creates a new person and generates AI bio.")
+    public ResponseEntity<PersonResponse> createPerson(@Valid @RequestBody PersonRequest request) {
+
+        // 1. 调用 Service，这里面已经包含了：
+        //    AI 生成 -> 安全脱敏 -> 存入数据库
+        PersonResponse response = personService.createPerson(request);
+
+        // 2. 返回 201 Created 状态码，并带上完整的对象
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }

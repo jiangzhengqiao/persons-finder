@@ -1,21 +1,27 @@
 package com.persons.finder.service;
 
-
 import com.persons.finder.domain.Person;
+import com.persons.finder.dto.LocationUpdateRequest;
+import com.persons.finder.dto.PersonRequest;
 import com.persons.finder.dto.PersonResponse;
 import com.persons.finder.repository.PersonRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
-@SpringBootTest
-@Transactional // Automatic rollback without polluting the database
+@SpringBootTest(properties = "app.seed-data=false")
+@ActiveProfiles("test")
+@Transactional
 class PersonServiceTest {
 
     @Autowired
@@ -24,26 +30,53 @@ class PersonServiceTest {
     @Autowired
     private PersonRepository personRepository;
 
+    @MockBean
+    private AiClient aiClient;
+
     private Long savedPersonId;
 
     @BeforeEach
     void setUp() {
         personRepository.deleteAll();
         Person p = new Person();
-        p.setName("Leo");
+        p.setName("Alex");
         p.setJobTitle("Interviewer");
         p.setLatitude(-41.2865);
         p.setLongitude(174.7762);
+        p.setHobbies("Sailing, Coding");
         p = personRepository.save(p);
         savedPersonId = p.getId();
+    }
+
+    @Test
+    void createPerson_WithAiBio_Success() {
+        String mockedBio = "Alex Martinez is a tech enthusiast who loves sailing and chess.";
+        when(aiClient.generate(anyString())).thenReturn(mockedBio);
+
+        PersonRequest request = new PersonRequest(
+                "New User",
+                "Senior Developer",
+                "Reading, Running",
+                -36.8485,
+                174.7633
+        );
+
+        PersonResponse response = personService.createPerson(request);
+
+        assertNotNull(response.id());
+        assertEquals("New User", response.name());
+        assertEquals(mockedBio, response.bio());
+
+        assertTrue(personRepository.findById(response.id()).isPresent());
+        System.out.println("createPerson success");
     }
 
     @Test
     void updateLocation_Success() {
         double newLat = -36.8485; // Auckland
         double newLon = 174.7633;
-
-        personService.updateLocation(savedPersonId, newLat, newLon);
+        LocationUpdateRequest request = new LocationUpdateRequest(newLat, newLon);
+        personService.updateLocation(savedPersonId, request);
 
         Person updated = personRepository.findById(savedPersonId).orElseThrow();
         assertEquals(newLat, updated.getLatitude(), 0.0001);
@@ -54,9 +87,10 @@ class PersonServiceTest {
     @Test
     void updateLocation_NotFound() {
         assertThrows(RuntimeException.class, () -> {
-            personService.updateLocation(99999L, 0.0, 0.0);
+            LocationUpdateRequest request = new LocationUpdateRequest(0.0, 0.0);
+            personService.updateLocation(99999L, request);
         });
-        System.out.println("updateLocation success");
+        System.out.println("updateLocation checked");
     }
 
     @Test
@@ -86,7 +120,6 @@ class PersonServiceTest {
 
     @Test
     void findNearby_Pagination() {
-        // add 2 people
         for (int i = 0; i < 2; i++) {
             Person p = new Person();
             p.setName("Extra " + i);
@@ -95,7 +128,6 @@ class PersonServiceTest {
             personRepository.save(p);
         }
 
-        // 3 people in total, 2 people per page
         Page<PersonResponse> page0 = personService.findNearby(
                 -41.28, 174.77, 10.0, PageRequest.of(0, 2));
 

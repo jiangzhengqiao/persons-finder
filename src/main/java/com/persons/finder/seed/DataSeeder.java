@@ -2,8 +2,8 @@ package com.persons.finder.seed;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -13,20 +13,14 @@ import java.util.UUID;
 
 @Slf4j
 @Component
+@ConditionalOnProperty(name = "app.seed-data", havingValue = "true")
 @RequiredArgsConstructor
 public class DataSeeder implements CommandLineRunner {
 
     private final JdbcTemplate jdbcTemplate;
 
-    @Value("${app.seed-data:false}") // default false
-    private boolean seedData;
-
     @Override
     public void run(String... args) throws Exception {
-        if (!seedData) {
-            return;
-        }
-
         // 1. check prevent repeated execution
         Integer count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM persons", Integer.class);
         if (count != null && count > 0) {
