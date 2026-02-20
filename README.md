@@ -24,10 +24,10 @@ Use Gradle to build and start the application.
 
 ```bash
 # Build the project (skip tests for fast build)
-./gradlew clean build -x test
+./gradlew assemble -x test
 
 # Run the application
-java -jar build/libs/persons-finder-0.0.1-SNAPSHOT.jar
+java -jar build/libs/PersonsFinder-0.0.1-SNAPSHOT.jar
 ```
 
 ### 3. Testing
