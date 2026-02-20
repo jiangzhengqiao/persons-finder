@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,17 +29,17 @@ public class PersonService {
     private final AiClient aiClient;
 
     @Transactional(readOnly = true)
-    public Page<PersonResponse> findNearby(double lat, double lon, double radiusKm, Pageable pageable) {
+    public Slice<PersonResponse> findNearby(double lat, double lon, double radiusKm, Pageable pageable) {
         log.info("Searching for persons near ({}, {}) within {}km, page: {}", lat, lon, radiusKm, pageable.getPageNumber());
         long startTime = System.currentTimeMillis();
         var box = GeoUtils.calculateBoundingBox(lat, lon, radiusKm);
 
         Pageable distancePageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
-        Page<PersonResponse> results = personRepository.findNearbyEfficiently(
+        Slice<PersonResponse> results = personRepository.findNearbyEfficiently(
                 lat, lon, radiusKm, box.minLat(), box.maxLat(), box.minLon(), box.maxLon(), distancePageable
         ).map(this::convertToResponse);
 
-        log.debug("Found {} results in {}ms", results.getTotalElements(), System.currentTimeMillis() - startTime);
+        log.debug("Found {} results in {}ms", results.getNumberOfElements(), System.currentTimeMillis() - startTime);
         return results;
     }
 

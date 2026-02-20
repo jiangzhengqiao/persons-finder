@@ -12,6 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -107,13 +108,13 @@ class PersonServiceTest {
         farPerson.setLongitude(174.76);
         personRepository.save(farPerson);
 
-        Page<PersonResponse> results10km = personService.findNearby(
+        Slice<PersonResponse> results10km = personService.findNearby(
                 -41.2865, 174.7762, 10.0, PageRequest.of(0, 10));
-        assertEquals(2, results10km.getTotalElements(), "2 people should be found within 10km");
+        assertEquals(2, results10km.getNumberOfElements(), "2 people should be found within 10km");
 
-        Page<PersonResponse> results1km = personService.findNearby(
+        Slice<PersonResponse> results1km = personService.findNearby(
                 -41.2865, 174.7762, 1.0, PageRequest.of(0, 10));
-        assertEquals(1, results1km.getTotalElements(), "there should be only one person within 1km");
+        assertEquals(1, results1km.getNumberOfElements(), "there should be only one person within 1km");
 
         System.out.println("findNearby success");
     }
@@ -128,7 +129,7 @@ class PersonServiceTest {
             personRepository.save(p);
         }
 
-        Page<PersonResponse> page0 = personService.findNearby(
+        Slice<PersonResponse> page0 = personService.findNearby(
                 -41.28, 174.77, 10.0, PageRequest.of(0, 2));
 
         assertEquals(2, page0.getContent().size());

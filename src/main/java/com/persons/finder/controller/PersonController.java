@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,13 +29,13 @@ public class PersonController {
 
     @GetMapping("/nearby")
     @Operation(summary = "Find nearby people", description = "Returns a paginated list of people within a specified radius, sorted by proximity.")
-    public ResponseEntity<Page<PersonResponse>> getNearby(
+    public ResponseEntity<Slice<PersonResponse>> getNearby(
             @Parameter(description = "Center latitude, e.g., -36.8485") @RequestParam double lat,
             @Parameter(description = "Center longitude, e.g., 174.7633") @RequestParam double lon,
             @Parameter(description = "Radius in kilometers") @RequestParam(defaultValue = "10.0") double radius,
-            @PageableDefault(size = 20, sort = "id") Pageable pageable) {
+            @PageableDefault(size = 20) Pageable pageable) {
 
-        Page<PersonResponse> nearbyPeople = personService.findNearby(lat, lon, radius, pageable);
+        Slice<PersonResponse> nearbyPeople = personService.findNearby(lat, lon, radius, pageable);
         return ResponseEntity.ok(nearbyPeople);
     }
 
