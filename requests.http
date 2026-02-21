@@ -1,0 +1,24 @@
+### 1. create new person（POST /persons）
+POST http://localhost:8080/api/v1/persons
+Content-Type: application/json
+
+{
+  "name": "Alex",
+  "jobTitle": "Software Engineer",
+  "hobbies": "hiking, photography",
+  "latitude": 40.7128,
+  "longitude": -74.0060
+}
+
+### 2. update location（PUT /persons/{id}/location）
+PUT http://localhost:8080/api/v1/persons/255319/location
+Content-Type: application/json
+
+{
+  "latitude": 40.7306,
+  "longitude": -73.9352
+}
+
+### 3. nearby（GET /persons/nearby）
+### parameter：lat, lon, radius（km）
+GET http://localhost:8080/api/v1/persons/nearby?lat=-41.2865&lon=174.7762&radius=100&page=0&size=10

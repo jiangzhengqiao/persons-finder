@@ -1,0 +1,8 @@
+.git
+.gitignore
+README.md
+build/
+*.log
+.idea/
+*.iml
+.DS_Store
