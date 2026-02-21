@@ -1,4 +1,4 @@
-package com.persons.finder.seed;
+package com.persons.finder.infrastructure.seed;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

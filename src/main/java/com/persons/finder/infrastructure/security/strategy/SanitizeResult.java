@@ -1,4 +1,4 @@
-package com.persons.finder.security.strategy;
+package com.persons.finder.infrastructure.security.strategy;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

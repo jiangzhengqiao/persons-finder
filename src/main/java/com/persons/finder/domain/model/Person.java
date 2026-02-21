@@ -1,4 +1,4 @@
-package com.persons.finder.domain;
+package com.persons.finder.domain.model;
 
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -33,9 +33,8 @@ public class Person {
     @Column(columnDefinition = "TEXT")
     private String bio;
 
-    // 地理位置：纬度和经度
-    private Double latitude;
-    private Double longitude;
+    @Embedded
+    private Location location;
 
     @Version
     private Long version;

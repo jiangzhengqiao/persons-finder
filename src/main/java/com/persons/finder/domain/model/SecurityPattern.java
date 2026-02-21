@@ -1,6 +1,7 @@
-package com.persons.finder.domain;
+package com.persons.finder.domain.model;
 
 import lombok.*;
+
 import javax.persistence.*;
 
 @Entity
@@ -20,7 +21,7 @@ public class SecurityPattern {
     private Long id;
 
     @Column(nullable = false)
-    private String pattern; // 敏感词词条
+    private String pattern;
 
     @Column(nullable = false)
     private String type; // 'INPUT_FILTER' or 'OUTPUT_FILTER'

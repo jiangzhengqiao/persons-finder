@@ -2,10 +2,12 @@ package com.persons.finder.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.persons.finder.dto.LocationUpdateRequest;
+import com.persons.finder.domain.model.Location;
+import com.persons.finder.domain.model.Person;
+import com.persons.finder.dto.LocationRequest;
 import com.persons.finder.dto.PersonRequest;
 import com.persons.finder.dto.PersonResponse;
-import com.persons.finder.repository.PersonRepository;
+import com.persons.finder.domain.repository.PersonRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,8 +66,8 @@ public class PersonControllerIntegrationTest {
         assertThat(body.id()).isNotNull();
         assertThat(body.name()).isEqualTo("John Doe");
         assertThat(body.bio()).isNotEmpty(); // MockAiClient 会生成一个 bio
-        assertThat(body.latitude()).isEqualTo(40.7128);
-        assertThat(body.longitude()).isEqualTo(-74.0060);
+        assertThat(body.location().getLatitude()).isEqualTo(40.7128);
+        assertThat(body.location().getLongitude()).isEqualTo(-74.0060);
     }
 
     @Test
@@ -107,10 +109,10 @@ public class PersonControllerIntegrationTest {
 
         double newLat = 40.7128;
         double newLon = -74.0060;
-        var updateRequest = new LocationUpdateRequest(newLat, newLon);
+        var updateRequest = new LocationRequest(newLat, newLon);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<LocationUpdateRequest> entity = new HttpEntity<>(updateRequest, headers);
+        HttpEntity<LocationRequest> entity = new HttpEntity<>(updateRequest, headers);
 
         // update
         ResponseEntity<PersonResponse> updateResponse = restTemplate.exchange(
@@ -123,16 +125,17 @@ public class PersonControllerIntegrationTest {
 
         assertThat(updateResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
         PersonResponse updated = updateResponse.getBody();
-        assertThat(updated.latitude()).isEqualTo(newLat);
-        assertThat(updated.longitude()).isEqualTo(newLon);
+
+        assertThat(updated.location().getLatitude()).isEqualTo(newLat);
+        assertThat(updated.location().getLongitude()).isEqualTo(newLon);
     }
 
     @Test
     void updateLocation_WithNonExistingId_ShouldReturnNotFound() {
-        var updateRequest = new LocationUpdateRequest(10.0, 20.0);
+        var updateRequest = new LocationRequest(10.0, 20.0);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<LocationUpdateRequest> entity = new HttpEntity<>(updateRequest, headers);
+        HttpEntity<LocationRequest> entity = new HttpEntity<>(updateRequest, headers);
 
         ResponseEntity<String> response = restTemplate.exchange(
                 "/api/v1/persons/99999/location",
@@ -146,24 +149,21 @@ public class PersonControllerIntegrationTest {
 
     @Test
     void findNearby_ShouldReturnPeopleWithinRadiusSortedByDistance() {
-        com.persons.finder.domain.Person personA = new com.persons.finder.domain.Person();
+        Person personA = new Person();
         personA.setName("Nearby Person");
-        personA.setLatitude(40.7130);
-        personA.setLongitude(-74.0065);
+        personA.setLocation(new Location(40.7130, -74.0065));
         personA.setBio("Bio A");
         personRepository.save(personA);
 
-        com.persons.finder.domain.Person personB = new com.persons.finder.domain.Person();
+        Person personB = new Person();
         personB.setName("Medium Person");
-        personB.setLatitude(40.7150);
-        personB.setLongitude(-74.0100);
+        personB.setLocation(new Location(40.7150, -74.0100));
         personB.setBio("Bio B");
         personRepository.save(personB);
 
-        com.persons.finder.domain.Person personC = new com.persons.finder.domain.Person();
+        Person personC = new Person();
         personC.setName("Far Person");
-        personC.setLatitude(41.0000);
-        personC.setLongitude(-74.0000);
+        personC.setLocation(new Location(41.0000, -74.0000));
         personC.setBio("Bio C");
         personRepository.save(personC);
 

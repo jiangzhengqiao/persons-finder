@@ -1,4 +1,4 @@
-package com.persons.finder.service;
+package com.persons.finder.infrastructure.ai;
 
 public interface AiClient {
     String generate(String prompt);

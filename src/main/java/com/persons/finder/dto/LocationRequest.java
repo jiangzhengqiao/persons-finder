@@ -4,7 +4,7 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
-public record LocationUpdateRequest(
+public record LocationRequest(
         @NotNull(message = "Latitude is required")
         @Min(value = -90, message = "Latitude must be between -90 and 90")
         @Max(value = 90, message = "Latitude must be between -90 and 90")

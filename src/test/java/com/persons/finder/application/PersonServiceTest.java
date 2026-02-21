@@ -1,12 +1,14 @@
-package com.persons.finder.service;
+package com.persons.finder.application;
 
-import com.persons.finder.domain.Person;
-import com.persons.finder.dto.LocationUpdateRequest;
+import com.persons.finder.domain.model.Location;
+import com.persons.finder.domain.model.Person;
+import com.persons.finder.dto.LocationRequest;
 import com.persons.finder.dto.PersonRequest;
 import com.persons.finder.dto.PersonResponse;
 import com.persons.finder.exception.SecurityValidationException;
-import com.persons.finder.repository.PersonRepository;
-import com.persons.finder.repository.SecurityPatternRepository;
+import com.persons.finder.infrastructure.ai.AiClient;
+import com.persons.finder.domain.repository.PersonRepository;
+import com.persons.finder.domain.repository.SecurityPatternRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,13 +19,12 @@ import org.springframework.data.domain.Slice;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
-
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest(properties = "app.seed-data=false")
 @ActiveProfiles("test")
@@ -50,8 +51,7 @@ class PersonServiceTest {
         Person p = new Person();
         p.setName("Alex");
         p.setJobTitle("Interviewer");
-        p.setLatitude(-41.2865);
-        p.setLongitude(174.7762);
+        p.setLocation(new Location(-41.2865, 174.7762));
         p.setHobbies("Sailing, Coding");
         p = personRepository.save(p);
         savedPersonId = p.getId();
@@ -84,19 +84,19 @@ class PersonServiceTest {
     void updateLocation_Success() {
         double newLat = -36.8485; // Auckland
         double newLon = 174.7633;
-        LocationUpdateRequest request = new LocationUpdateRequest(newLat, newLon);
+        LocationRequest request = new LocationRequest(newLat, newLon);
         personService.updateLocation(savedPersonId, request);
 
         Person updated = personRepository.findById(savedPersonId).orElseThrow();
-        assertEquals(newLat, updated.getLatitude(), 0.0001);
-        assertEquals(newLon, updated.getLongitude(), 0.0001);
+        assertEquals(newLat, updated.getLocation().getLatitude(), 0.0001);
+        assertEquals(newLon, updated.getLocation().getLongitude(), 0.0001);
         System.out.println("updateLocation success");
     }
 
     @Test
     void updateLocation_NotFound() {
         assertThrows(RuntimeException.class, () -> {
-            LocationUpdateRequest request = new LocationUpdateRequest(0.0, 0.0);
+            LocationRequest request = new LocationRequest(0.0, 0.0);
             personService.updateLocation(99999L, request);
         });
         System.out.println("updateLocation checked");
@@ -106,14 +106,12 @@ class PersonServiceTest {
     void findNearby_SpatialAccuracy() {
         Person nearPerson = new Person();
         nearPerson.setName("Nearby User");
-        nearPerson.setLatitude(-41.32);
-        nearPerson.setLongitude(174.78);
+        nearPerson.setLocation(new Location(-41.32, 174.78));
         personRepository.save(nearPerson);
 
         Person farPerson = new Person();
         farPerson.setName("Far User");
-        farPerson.setLatitude(-36.84);
-        farPerson.setLongitude(174.76);
+        farPerson.setLocation(new Location(-36.84, 174.76));
         personRepository.save(farPerson);
 
         Slice<PersonResponse> results10km = personService.findNearby(
@@ -132,8 +130,7 @@ class PersonServiceTest {
         for (int i = 0; i < 2; i++) {
             Person p = new Person();
             p.setName("Extra " + i);
-            p.setLatitude(-41.28);
-            p.setLongitude(174.77);
+            p.setLocation(new Location(-41.28, 174.77));
             personRepository.save(p);
         }
 

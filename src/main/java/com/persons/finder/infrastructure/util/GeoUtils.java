@@ -1,4 +1,4 @@
-package com.persons.finder.util;
+package com.persons.finder.infrastructure.util;
 
 /**
  * Utility for geospatial calculations.

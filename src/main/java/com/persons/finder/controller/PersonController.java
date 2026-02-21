@@ -1,15 +1,13 @@
 package com.persons.finder.controller;
 
-import com.persons.finder.dto.LocationUpdateRequest;
+import com.persons.finder.dto.LocationRequest;
 import com.persons.finder.dto.PersonRequest;
 import com.persons.finder.dto.PersonResponse;
-import com.persons.finder.service.PersonService;
+import com.persons.finder.application.PersonService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.web.PageableDefault;
@@ -43,7 +41,7 @@ public class PersonController {
     @Operation(summary = "Update location", description = "Updates the GPS coordinates for an existing person.")
     public PersonResponse updateLocation(
             @PathVariable Long id,
-            @Valid @RequestBody LocationUpdateRequest request) {
+            @Valid @RequestBody LocationRequest request) {
 
         return personService.updateLocation(id, request);
     }

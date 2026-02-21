@@ -1,6 +1,6 @@
-package com.persons.finder.security.strategy;
+package com.persons.finder.infrastructure.security.strategy;
 
-import com.persons.finder.repository.SecurityPatternRepository;
+import com.persons.finder.domain.repository.SecurityPatternRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

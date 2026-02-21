@@ -1,5 +1,6 @@
-package com.persons.finder.service;
+package com.persons.finder.infrastructure.ai;
 
+import com.persons.finder.infrastructure.ai.AiClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

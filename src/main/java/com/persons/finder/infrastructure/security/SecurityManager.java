@@ -1,7 +1,7 @@
-package com.persons.finder.security;
+package com.persons.finder.infrastructure.security;
 
-import com.persons.finder.security.strategy.SanitizeResult;
-import com.persons.finder.security.strategy.SecurityStrategy;
+import com.persons.finder.infrastructure.security.strategy.SanitizeResult;
+import com.persons.finder.infrastructure.security.strategy.SecurityStrategy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

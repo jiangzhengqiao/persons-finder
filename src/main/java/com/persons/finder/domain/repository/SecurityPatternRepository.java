@@ -1,6 +1,6 @@
-package com.persons.finder.repository;
+package com.persons.finder.domain.repository;
 
-import com.persons.finder.domain.SecurityPattern;
+import com.persons.finder.domain.model.SecurityPattern;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
