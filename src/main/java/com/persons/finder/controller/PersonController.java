@@ -1,9 +1,10 @@
 package com.persons.finder.controller;
 
+import com.persons.finder.application.PersonService;
 import com.persons.finder.dto.LocationRequest;
+import com.persons.finder.dto.NearbyRequest;
 import com.persons.finder.dto.PersonRequest;
 import com.persons.finder.dto.PersonResponse;
-import com.persons.finder.application.PersonService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -13,34 +14,36 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 
 @RestController
 @RequestMapping("/api/v1/persons") // version control is very important
 @RequiredArgsConstructor
+@Validated
 @Tag(name = "Person Management", description = "APIs for location-based search and AI profile creation")
 public class PersonController {
 
     private final PersonService personService;
 
     @GetMapping("/nearby")
-    @Operation(summary = "Find nearby people", description = "Returns a paginated list of people within a specified radius, sorted by proximity.")
+    @Operation(summary = "Find nearby people", description = "Returns a sliced list of people within a specified radius, sorted by proximity.")
     public ResponseEntity<Slice<PersonResponse>> getNearby(
-            @Parameter(description = "Center latitude, e.g., -36.8485") @RequestParam double lat,
-            @Parameter(description = "Center longitude, e.g., 174.7633") @RequestParam double lon,
-            @Parameter(description = "Radius in kilometers") @RequestParam(defaultValue = "10.0") double radius,
+            @Valid NearbyRequest request,
             @PageableDefault(size = 20) Pageable pageable) {
 
-        Slice<PersonResponse> nearbyPeople = personService.findNearby(lat, lon, radius, pageable);
+        Slice<PersonResponse> nearbyPeople = personService.findNearby(request.lat(), request.lon(), request.radius(), pageable);
         return ResponseEntity.ok(nearbyPeople);
     }
 
     @PutMapping("/{id}/location")
     @Operation(summary = "Update location", description = "Updates the GPS coordinates for an existing person.")
     public PersonResponse updateLocation(
-            @PathVariable Long id,
+            @PathVariable @Min(1) Long id,
             @Valid @RequestBody LocationRequest request) {
 
         return personService.updateLocation(id, request);
@@ -49,12 +52,7 @@ public class PersonController {
     @PostMapping
     @Operation(summary = "Create a person", description = "Creates a new person and generates AI bio.")
     public ResponseEntity<PersonResponse> createPerson(@Valid @RequestBody PersonRequest request) {
-
-        // 1. 调用 Service，这里面已经包含了：
-        //    AI 生成 -> 安全脱敏 -> 存入数据库
         PersonResponse response = personService.createPerson(request);
-
-        // 2. 返回 201 Created 状态码，并带上完整的对象
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }

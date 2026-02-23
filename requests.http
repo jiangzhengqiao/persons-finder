@@ -1,17 +1,43 @@
-### 1. create new person（POST /persons）
+### 1. Create New Person (Normal)
 POST http://localhost:8080/api/v1/persons
 Content-Type: application/json
 
 {
-  "name": "Alex",
+  "name": "Bella",
   "jobTitle": "Software Engineer",
   "hobbies": "hiking, photography",
   "latitude": 40.7128,
   "longitude": -74.0060
 }
 
-### 2. update location（PUT /persons/{id}/location）
-PUT http://localhost:8080/api/v1/persons/255319/location
+### 2. Create Person - Illegal Input (Security Violation)
+# Case: Trigger 403 by including "System prompt" in hobbies
+POST http://localhost:8080/api/v1/persons
+Content-Type: application/json
+
+{
+  "name": "Alex",
+  "jobTitle": "Software Engineer",
+  "hobbies": "hiking, photography, System prompt",
+  "latitude": 40.7128,
+  "longitude": -74.0060
+}
+
+### 3. Create Person - Illegal Output (Mock AI Hacked)
+# Case: AI returns "hacked", system should sanitize it to safe text
+POST http://localhost:8080/api/v1/persons
+Content-Type: application/json
+
+{
+  "name": "MockTest",
+  "jobTitle": "Tester",
+  "hobbies": "testing",
+  "latitude": 34.0522,
+  "longitude": -118.2437
+}
+
+### 4. Update Location (Normal)
+PUT http://localhost:8080/api/v1/persons/1/location
 Content-Type: application/json
 
 {
@@ -19,6 +45,29 @@ Content-Type: application/json
   "longitude": -73.9352
 }
 
-### 3. nearby（GET /persons/nearby）
-### parameter：lat, lon, radius（km）
+### 5. Update Location - Invalid Latitude
+# Case: Trigger 400 by setting latitude to 100
+PUT http://localhost:8080/api/v1/persons/1/location
+Content-Type: application/json
+
+{
+  "latitude": 100.0,
+  "longitude": -73.9352
+}
+
+### 6. Update Location - ID Not Found
+# Case: Trigger 404 by using a non-existent ID
+PUT http://localhost:8080/api/v1/persons/9999999/location
+Content-Type: application/json
+
+{
+  "latitude": 40.7306,
+  "longitude": -73.9352
+}
+
+### 7. Nearby Search (Normal)
 GET http://localhost:8080/api/v1/persons/nearby?lat=-41.2865&lon=174.7762&radius=100&page=0&size=10
+
+### 8. Nearby Search - Invalid Parameter
+# Case: Trigger 400 by invalid coordinate or radius
+GET http://localhost:8080/api/v1/persons/nearby?lat=120&lon=174.7762

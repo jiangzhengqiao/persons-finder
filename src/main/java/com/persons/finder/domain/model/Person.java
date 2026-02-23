@@ -29,7 +29,6 @@ public class Person {
 
     private String hobbies;
 
-    // 存储 AI 生成的简介
     @Column(columnDefinition = "TEXT")
     private String bio;
 

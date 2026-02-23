@@ -2,12 +2,14 @@ package com.persons.finder.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.validation.ConstraintViolationException;
 import java.time.LocalDateTime;
 
 @ControllerAdvice
@@ -27,10 +29,21 @@ public class GlobalExceptionHandler {
     }
 
     // 3. parameter
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentNotValidException ex, WebRequest request) {
-        String errorMessage = ex.getBindingResult().getAllErrors().get(0).getDefaultMessage();
+    @ExceptionHandler({MethodArgumentNotValidException.class, BindException.class})
+    public ResponseEntity<ErrorResponse> handleValidationExceptions(Exception ex, WebRequest request) {
+        String errorMessage;
+        if (ex instanceof MethodArgumentNotValidException res) {
+            errorMessage = res.getBindingResult().getAllErrors().get(0).getDefaultMessage();
+        } else {
+            errorMessage = ((BindException) ex).getBindingResult().getAllErrors().get(0).getDefaultMessage();
+        }
         return buildResponse(HttpStatus.BAD_REQUEST, "Validation Error", errorMessage, request);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> handleParamValid(ConstraintViolationException ex, WebRequest request) {
+        String msg = ex.getConstraintViolations().iterator().next().getMessage();
+        return buildResponse(HttpStatus.BAD_REQUEST, "Validation Error", msg, request);
     }
 
     // 4. 404 Not Found
