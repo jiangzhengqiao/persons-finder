@@ -15,14 +15,13 @@ public class AiBioGenerator implements BioGenerator {
 
     @Override
     public String generateBio(Person person) {
-        String prompt = String.format(
-                "Role: Create a professional bio.\n" +
-                        "Name: %s\n" +
-                        "Job: %s\n" +
-                        "Hobbies: %s\n" +
-                        "Constraint: Maximum 20 words.",
-                person.getName(), person.getJobTitle(), person.getHobbies()
-        );
+        String prompt = """
+        Role: Create a professional bio.
+        Name: %s
+        Job: %s
+        Hobbies: %s
+        Constraint: Maximum 20 words.
+        """.formatted(person.getName(), person.getJobTitle(), person.getHobbies());
         String raw = aiClient.generate(prompt);
         return securityManager.sanitizeOutput(raw);
     }
