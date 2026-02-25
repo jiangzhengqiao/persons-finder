@@ -213,3 +213,42 @@ The application will be available at http://localhost:8080.
 - Spring Data JPA (Spatial query with Bounding Box)
 - Docker (Containerization)
 - Mockito (For cost-free AI testing)
+
+## 📊 Performance
+
+We benchmarked the `/nearby` endpoint with **1 million records** in the database. Each test performed 1000 requests. Below are the results under different concurrency levels:
+
+| Threads | Total Time (ms) | QPS     | Avg (ms) | Max (ms) | P95 (ms) | P99 (ms) | Error Rate |
+|---------|-----------------|---------|----------|----------|----------|----------|------------|
+| 10      | 663             | 1508.30 | 6.57     | 85.95    | 12.39    | 20.36    | 0.00%      |
+| 50      | 952             | 1050.42 | 43.13    | 217.73   | 121.11   | 180.30   | 0.00%      |
+| 100     | 1968            | 508.13  | 194.13   | 877.72   | 683.67   | 747.59   | 0.00%      |
+
+**Performance analysis with Arthas:**  
+Using the `trace` command, we identified the main bottleneck. The trace below shows a typical request (18ms total):
+
+
+```shell
+---ts=2026-02-26 00:32:53.434;thread_name=http-nio-8080-exec-3;id=126;is_daemon=true;priority=5;TCCL=org.springframework.boot.web.embedded.tomcat.TomcatEmbeddedWebappClassLoader@34b87182
+    `---[18.059667ms] com.persons.finder.application.PersonService$$EnhancerBySpringCGLIB$$6c99b310:findNearby()
+        `---[99.23% 17.92125ms ] org.springframework.cglib.proxy.MethodInterceptor:intercept()
+            `---[83.92% 15.039541ms ] com.persons.finder.application.PersonService:findNearby()
+                +---[0.03% 0.004667ms ] org.springframework.data.domain.Pageable:getPageNumber() #33
+                +---[14.65% 2.202625ms ] org.slf4j.Logger:info() #33
+                +---[0.53% 0.080125ms ] com.persons.finder.infrastructure.util.GeoUtils:calculateBoundingBox() #35
+                +---[1.18% 0.176792ms ] org.springframework.data.domain.Pageable:getPageNumber() #37
+                +---[0.06% 0.008916ms ] org.springframework.data.domain.Pageable:getPageSize() #37
+                +---[0.07% 0.011125ms ] org.springframework.data.domain.PageRequest:of() #37
+                +---[0.05% 0.007166ms ] com.persons.finder.infrastructure.util.GeoUtils$BoundingBox:minLat() #39
+                +---[0.04% 0.006625ms ] com.persons.finder.infrastructure.util.GeoUtils$BoundingBox:maxLat() #39
+                +---[0.04% 0.00625ms ] com.persons.finder.infrastructure.util.GeoUtils$BoundingBox:minLon() #39
+                +---[0.84% 0.126708ms ] com.persons.finder.infrastructure.util.GeoUtils$BoundingBox:maxLon() #39
+                +---[79.20% 11.911375ms ] com.persons.finder.domain.repository.PersonRepository:findNearbyEfficiently() #38
+                +---[0.97% 0.146209ms ] org.springframework.data.domain.Slice:map() #40
+                +---[0.02% 0.002584ms ] org.springframework.data.domain.Slice:getNumberOfElements() #42
+                `---[0.91% 0.1365ms ] org.slf4j.Logger:debug() #42
+```
+**The database query (`findNearbyEfficiently`) takes ~79% of the total time**, even with the bounding‑box pre‑filter. The rest is mainly logging and mapping.
+
+**Planned optimization:**  
+For production, we would replace the manual Haversine calculation with **PostGIS** native spatial indexes. Using `ST_DWithin` and `ST_DistanceSphere` would reduce the query time to single‑digit milliseconds, especially under high concurrency.
