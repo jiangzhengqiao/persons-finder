@@ -1,6 +1,5 @@
 package com.persons.finder.dto;
 
-import com.persons.finder.domain.model.Location;
 
 import java.time.LocalDateTime;
 
@@ -10,7 +9,8 @@ public record PersonResponse(
         String jobTitle,
         String hobbies,
         String bio,
-        Location location,
+        Double latitude,
+        Double longitude,
         LocalDateTime createdAt
 ) {
 }

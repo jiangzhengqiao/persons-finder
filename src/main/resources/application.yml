@@ -1,49 +1,81 @@
+# ===================================================================
+# 1. Server Configuration
+# ===================================================================
 server:
   port: 8080
   error:
     include-message: always
+  tomcat:
+    threads:
+      max: 100
+    accept-count: 200
+    max-connections: 10000
 
-app:
-  seed-data: true
-  ai:
-    api-url: ${APP_AI_API_URL:https://api.openai.com/v1/chat/completions}
-    api-key: ${APP_AI_API_KEY:security}
-    mock: false
-
+# ===================================================================
+# 2. Spring Core & Persistence
+# ===================================================================
 spring:
   application:
     name: person-finder-ai
 
+  # Database & Connection Pool
+  datasource:
+    url: jdbc:postgresql://localhost:5432/persons
+    username: jiangzq
+    password: ""
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 100
+      minimum-idle: 20
+      idle-timeout: 600000
+      connection-timeout: 5000
+      max-lifetime: 1800000
+      register-mbeans: true
+
+  # JPA & Hibernate (Spatial Support)
   jpa:
+    open-in-view: false
+    show-sql: false
+    defer-datasource-initialization: true
     hibernate:
       ddl-auto: update
-    defer-datasource-initialization: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.spatial.dialect.postgis.PostgisDialect
+        jdbc:
+          batch_size: 50
+          lob:
+            non_contextual_creation: true
+        order_updates: true
 
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
-      settings:
-        web-allow-others: true
+  # Redis & Lettuce Pool
+  redis:
+    host: localhost
+    port: 6379
+    timeout: 200ms
+    lettuce:
+      shutdown-timeout: 100ms
+      pool:
+        max-active: 100
+        max-idle: 50
+        min-idle: 10
 
-  datasource:
-    url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1
-    username: sa
-    password:
-    driver-class-name: org.h2.Driver
-    hikari:
-      maximum-pool-size: 20
-      minimum-idle: 5
-      idle-timeout: 300000
-      connection-timeout: 20000
-      max-lifetime: 1200000
+# ===================================================================
+# 3. Custom Business Logic
+# ===================================================================
+app:
+  seed-data: true
+  ai:
+    mock: false
+    api-url: ${APP_AI_API_URL:https://api.openai.com/v1/chat/completions}
+    api-key: ${APP_AI_API_KEY:security}
 
-logging:
-  level:
-    root: INFO
-    com.persons.finder: DEBUG
-    org.hibernate.SQL: WARN
-    org.springframework.web: INFO
+# ===================================================================
+# 4. Third-party Tools
+# ===================================================================
+rest-template:
+  connect-timeout: 5000
+  read-timeout: 15000
 
 springdoc:
   api-docs:
@@ -53,6 +85,13 @@ springdoc:
     operations-sorter: alpha
     tags-sorter: alpha
 
-rest-template:
-  connect-timeout: 5000
-  read-timeout: 15000
+# ===================================================================
+# 5. Logging & Metrics
+# ===================================================================
+logging:
+  level:
+    root: INFO
+    com.persons.finder: INFO
+    org.hibernate.SQL: INFO
+    org.springframework.web: INFO
+    com.zaxxer.hikari: INFO

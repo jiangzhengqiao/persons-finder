@@ -59,6 +59,12 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", "An unexpected error occurred. Please contact support.", request);
     }
 
+    // 6.Manually initiated illegal parameter exception in business logic
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex, WebRequest request) {
+        return buildResponse(HttpStatus.BAD_REQUEST, "Validation Error", ex.getMessage(), request);
+    }
+
     private ResponseEntity<ErrorResponse> buildResponse(HttpStatus status, String errorType, String message, WebRequest request) {
         ErrorResponse error = new ErrorResponse(
                 LocalDateTime.now(),

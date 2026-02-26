@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgis/postgis:15-3.4
+    container_name: persons-db
+    environment:
+      # 这里必须和你的 application.yml 保持绝对一致
+      POSTGRES_DB: persons
+      POSTGRES_USER: jiangzq
+      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_PASSWORD: ""
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jiangzq"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: persons-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    container_name: persons-app
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      # 建议在这里再次显式声明，覆盖 application.yml 确保容器内连接正确
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/persons
+      SPRING_DATASOURCE_USERNAME: jiangzq
+      SPRING_DATASOURCE_PASSWORD: ""
+      SPRING_REDIS_HOST: redis
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      APP_AI_MOCK: "true"
+    volumes:
+      - ./src:/app/src
+
+volumes:
+  postgres-data:

@@ -2,17 +2,15 @@ package com.persons.finder.application;
 
 import com.persons.finder.domain.model.Location;
 import com.persons.finder.domain.model.Person;
+import com.persons.finder.domain.repository.PersonRepository;
 import com.persons.finder.domain.service.BioGenerator;
 import com.persons.finder.dto.LocationRequest;
 import com.persons.finder.dto.PersonRequest;
 import com.persons.finder.dto.PersonResponse;
-import com.persons.finder.mapper.PersonMapper;
-import com.persons.finder.domain.repository.PersonRepository;
 import com.persons.finder.infrastructure.security.SecurityManager;
-import com.persons.finder.infrastructure.util.GeoUtils;
+import com.persons.finder.mapper.PersonMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
@@ -30,17 +28,8 @@ public class PersonService {
 
     @Transactional(readOnly = true)
     public Slice<PersonResponse> findNearby(double lat, double lon, double radiusKm, Pageable pageable) {
-        log.info("Searching for persons near ({}, {}) within {}km, page: {}", lat, lon, radiusKm, pageable.getPageNumber());
-        long startTime = System.currentTimeMillis();
-        var box = GeoUtils.calculateBoundingBox(lat, lon, radiusKm);
-
-        Pageable distancePageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
-        Slice<PersonResponse> results = personRepository.findNearbyEfficiently(
-                lat, lon, radiusKm, box.minLat(), box.maxLat(), box.minLon(), box.maxLon(), distancePageable
-        ).map(personMapper::toResponse);
-
-        log.debug("Found {} results in {}ms", results.getNumberOfElements(), System.currentTimeMillis() - startTime);
-        return results;
+        return personRepository.findNearby(lat, lon, radiusKm, pageable)
+                .map(personMapper::toResponse);
     }
 
     @Transactional
@@ -49,10 +38,11 @@ public class PersonService {
                 .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
                         org.springframework.http.HttpStatus.NOT_FOUND, "Person not found"));
 
-        person.setLocation(new Location(request.latitude(), request.longitude()));
+        Location location = Location.fromCoordinates(request.latitude(), request.longitude());
+        person.updateLocation(location);
 
-        // return DTO
-        return personMapper.toResponse(person);
+        Person updated = personRepository.save(person);
+        return personMapper.toResponse(updated);
     }
 
     @Transactional
@@ -64,15 +54,17 @@ public class PersonService {
         securityManager.validateInput(hobbies);
         log.debug("Requesting AI bio generation for hobbies: {}", hobbies);
 
+        Location location = Location.fromCoordinates(request.latitude(), request.longitude());
+
         Person person = Person.builder()
                 .name(name)
                 .jobTitle(request.jobTitle())
                 .hobbies(hobbies)
-                .location(new Location(request.latitude(), request.longitude()))
+                .location(location)
                 .build();
 
         String bio = bioGenerator.generateBio(person);
-        person.setBio(bio);
+        person.assignBio(bio);
 
         Person saved = personRepository.save(person);
         return personMapper.toResponse(saved);

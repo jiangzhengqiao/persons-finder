@@ -66,8 +66,8 @@ public class PersonControllerIntegrationTest {
         assertThat(body.id()).isNotNull();
         assertThat(body.name()).isEqualTo("John Doe");
         assertThat(body.bio()).isNotEmpty(); // MockAiClient 会生成一个 bio
-        assertThat(body.location().getLatitude()).isEqualTo(40.7128);
-        assertThat(body.location().getLongitude()).isEqualTo(-74.0060);
+        assertThat(body.latitude()).isEqualTo(40.7128);
+        assertThat(body.longitude()).isEqualTo(-74.0060);
     }
 
     @Test
@@ -125,9 +125,8 @@ public class PersonControllerIntegrationTest {
 
         assertThat(updateResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
         PersonResponse updated = updateResponse.getBody();
-
-        assertThat(updated.location().getLatitude()).isEqualTo(newLat);
-        assertThat(updated.location().getLongitude()).isEqualTo(newLon);
+        assertThat(updated.latitude()).isEqualTo(newLat);
+        assertThat(updated.longitude()).isEqualTo(newLon);
     }
 
     @Test
@@ -151,19 +150,19 @@ public class PersonControllerIntegrationTest {
     void findNearby_ShouldReturnPeopleWithinRadiusSortedByDistance() {
         Person personA = new Person();
         personA.setName("Nearby Person");
-        personA.setLocation(new Location(40.7130, -74.0065));
+        personA.setLocation(Location.fromCoordinates(40.7130, -74.0065));
         personA.setBio("Bio A");
         personRepository.save(personA);
 
         Person personB = new Person();
         personB.setName("Medium Person");
-        personB.setLocation(new Location(40.7150, -74.0100));
+        personB.setLocation(Location.fromCoordinates(40.7150, -74.0100));
         personB.setBio("Bio B");
         personRepository.save(personB);
 
         Person personC = new Person();
         personC.setName("Far Person");
-        personC.setLocation(new Location(41.0000, -74.0000));
+        personC.setLocation(Location.fromCoordinates(41.0000, -74.0000));
         personC.setBio("Bio C");
         personRepository.save(personC);
 

@@ -13,9 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "persons", indexes = {
-        @Index(name = "idx_location", columnList = "latitude, longitude")
-})
+@Table(name = "persons")
 public class Person {
 
     @Id
@@ -44,4 +42,19 @@ public class Person {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    public void updateLocation(Location newLocation) {
+        if (newLocation == null) {
+            throw new IllegalArgumentException("Location cannot be null");
+        }
+        this.location = newLocation;
+    }
+
+    public void assignBio(String bio) {
+        if (bio == null || bio.isBlank()) {
+            throw new IllegalArgumentException("Bio cannot be empty");
+        }
+        this.bio = bio;
+    }
+
 }
