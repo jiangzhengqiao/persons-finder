@@ -214,41 +214,54 @@ The application will be available at http://localhost:8080.
 - Docker (Containerization)
 - Mockito (For cost-free AI testing)
 
-## 📊 Performance
+## Performance Benchmarking Report
 
-We benchmarked the `/nearby` endpoint with **1 million records** in the database. Each test performed 1000 requests. Below are the results under different concurrency levels:
+### 1. Test Environment
+   - Hardware: Apple M1 (8 Cores, 8GB RAM)
+   - OS: macOS 26.3
+   - Runtime: OpenJDK 17 (JVM max heap 2GB)
+   - Data Volume: 1,000,000 (1M) Person Records
+   - Service Deployment: All services (Redis, PostGIS, App) running natively on localhost to eliminate network jitter.
 
-| Threads | Total Time (ms) | QPS     | Avg (ms) | Max (ms) | P95 (ms) | P99 (ms) | Error Rate |
-|---------|-----------------|---------|----------|----------|----------|----------|------------|
-| 10      | 663             | 1508.30 | 6.57     | 85.95    | 12.39    | 20.36    | 0.00%      |
-| 50      | 952             | 1050.42 | 43.13    | 217.73   | 121.11   | 180.30   | 0.00%      |
-| 100     | 1968            | 508.13  | 194.13   | 877.72   | 683.67   | 747.59   | 0.00%      |
+### 2. Comparative Analysis (1M Geo-Spatial Records)
+The following metrics were captured using the ./run_bench.sh script (powered by wrk).
 
-**Performance analysis with Arthas:**  
-Using the `trace` command, we identified the main bottleneck. The trace below shows a typical request (18ms total):
+| Engine           | Metrics     | 10 Concurrency  | 50 Concurrency  | 100 Concurrency |
+|------------------|-------------|-----------------|-----------------|-----------------|
+| Redis GEO        | RPS         | 6,858.11        | 7,275.95        | 7,214.06        | 
+| (Primary Cache)  | P99 Latency | 743.23 ms*      | 13.78 ms        | 324.23 ms       | 
+| H2 (In-Memory)   | RPS         | 1,881.55        | 2,069.34        | 1,973.24        | 
+| (Development)    | P99 Latency | 132.34 ms       | 198.66 ms       | 413.92 ms       | 
+| PostGIS (Native) | RPS         | 1,627.74        | 1,337.70        | 1,362.82        | 
+| (DB Fallback)    | P99 Latency | 1,210.00 ms*    | 202.31 ms       | 301.40 ms       | 
 
+**Note:** Higher latencies at low concurrency are due to initial JIT compilation and connection pool warm-up.
 
+### 3. How to Reproduce (Benchmark Execution)
+
+#### Prerequisites
+   - wrk: Must be installed on your Mac (brew install wrk)
+   - Services: Ensure Redis and PostGIS are accessible (or use the provided docker-compose.yml).
+
+#### Execution
+1. Ensure the application is running on port 8080.
+2. Run the automated benchmark script:
 ```shell
----ts=2026-02-26 00:32:53.434;thread_name=http-nio-8080-exec-3;id=126;is_daemon=true;priority=5;TCCL=org.springframework.boot.web.embedded.tomcat.TomcatEmbeddedWebappClassLoader@34b87182
-    `---[18.059667ms] com.persons.finder.application.PersonService$$EnhancerBySpringCGLIB$$6c99b310:findNearby()
-        `---[99.23% 17.92125ms ] org.springframework.cglib.proxy.MethodInterceptor:intercept()
-            `---[83.92% 15.039541ms ] com.persons.finder.application.PersonService:findNearby()
-                +---[0.03% 0.004667ms ] org.springframework.data.domain.Pageable:getPageNumber() #33
-                +---[14.65% 2.202625ms ] org.slf4j.Logger:info() #33
-                +---[0.53% 0.080125ms ] com.persons.finder.infrastructure.util.GeoUtils:calculateBoundingBox() #35
-                +---[1.18% 0.176792ms ] org.springframework.data.domain.Pageable:getPageNumber() #37
-                +---[0.06% 0.008916ms ] org.springframework.data.domain.Pageable:getPageSize() #37
-                +---[0.07% 0.011125ms ] org.springframework.data.domain.PageRequest:of() #37
-                +---[0.05% 0.007166ms ] com.persons.finder.infrastructure.util.GeoUtils$BoundingBox:minLat() #39
-                +---[0.04% 0.006625ms ] com.persons.finder.infrastructure.util.GeoUtils$BoundingBox:maxLat() #39
-                +---[0.04% 0.00625ms ] com.persons.finder.infrastructure.util.GeoUtils$BoundingBox:minLon() #39
-                +---[0.84% 0.126708ms ] com.persons.finder.infrastructure.util.GeoUtils$BoundingBox:maxLon() #39
-                +---[79.20% 11.911375ms ] com.persons.finder.domain.repository.PersonRepository:findNearbyEfficiently() #38
-                +---[0.97% 0.146209ms ] org.springframework.data.domain.Slice:map() #40
-                +---[0.02% 0.002584ms ] org.springframework.data.domain.Slice:getNumberOfElements() #42
-                `---[0.91% 0.1365ms ] org.slf4j.Logger:debug() #42
+    chmod +x ./run_bench.sh
+    ./run_bench.sh
 ```
-**The database query (`findNearbyEfficiently`) takes ~79% of the total time**, even with the bounding‑box pre‑filter. The rest is mainly logging and mapping.
 
-**Planned optimization:**  
-For production, we would replace the manual Haversine calculation with **PostGIS** native spatial indexes. Using `ST_DWithin` and `ST_DistanceSphere` would reduce the query time to single‑digit milliseconds, especially under high concurrency.
+#### Inside the Script (run_bench.sh)
+The script executes wrk commands with the following structure:
+```shell
+    # Example command used in the script
+    wrk -t12 -c100 -d30s "http://localhost:8080/persons/nearby?lat=-41.1923&lon=174.6139&radiusKm=10"
+```
+- -t12: 12 threads to utilize Apple M1 cores.
+- -c100: Number of concurrent HTTP connections.
+- -d30s: Duration of each test stage.
+
+### 4. Architectural Summary
+- High Availability: The fallback mechanism from Redis to PostGIS ensures system uptime. While PostGIS throughput is ~80% lower than Redis, it remains capable of handling >1.3k RPS on commodity hardware (Apple M1).
+
+- Developer Productivity: H2 is utilized for local development and CI/CD pipelines, offering a balanced performance profile without requiring external infrastructure.
