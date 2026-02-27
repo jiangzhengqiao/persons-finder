@@ -4,6 +4,7 @@ import com.persons.finder.domain.model.Location;
 import com.persons.finder.domain.model.Person;
 import com.persons.finder.domain.service.BioGenerator;
 import com.persons.finder.dto.LocationRequest;
+import com.persons.finder.dto.NearbyRequest;
 import com.persons.finder.dto.PersonRequest;
 import com.persons.finder.dto.PersonResponse;
 import com.persons.finder.mapper.PersonMapper;
@@ -29,14 +30,14 @@ public class PersonService {
     private final SecurityManager securityManager;
 
     @Transactional(readOnly = true)
-    public Slice<PersonResponse> findNearby(double lat, double lon, double radiusKm, Pageable pageable) {
-        log.info("Searching for persons near ({}, {}) within {}km, page: {}", lat, lon, radiusKm, pageable.getPageNumber());
+    public Slice<PersonResponse> findNearby(NearbyRequest request, Pageable pageable) {
+        log.info("Searching for persons near ({}, {}) within {}km, page: {}", request.lat(), request.lon(), request.radius(), pageable.getPageNumber());
         long startTime = System.currentTimeMillis();
-        var box = GeoUtils.calculateBoundingBox(lat, lon, radiusKm);
+        var box = GeoUtils.calculateBoundingBox(request.lat(), request.lon(), request.radius());
 
         Pageable distancePageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
         Slice<PersonResponse> results = personRepository.findNearbyEfficiently(
-                lat, lon, radiusKm, box.minLat(), box.maxLat(), box.minLon(), box.maxLon(), distancePageable
+                request.lat(), request.lon(), request.radius(), box.minLat(), box.maxLat(), box.minLon(), box.maxLon(), distancePageable
         ).map(personMapper::toResponse);
 
         log.debug("Found {} results in {}ms", results.getNumberOfElements(), System.currentTimeMillis() - startTime);
@@ -51,8 +52,8 @@ public class PersonService {
 
         person.setLocation(new Location(request.latitude(), request.longitude()));
 
-        // return DTO
-        return personMapper.toResponse(person);
+        Person saved = personRepository.save(person);
+        return personMapper.toResponse(saved);
     }
 
     @Transactional

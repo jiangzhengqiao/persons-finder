@@ -2,13 +2,14 @@ package com.persons.finder.application;
 
 import com.persons.finder.domain.model.Location;
 import com.persons.finder.domain.model.Person;
+import com.persons.finder.domain.repository.PersonRepository;
+import com.persons.finder.domain.repository.SecurityPatternRepository;
 import com.persons.finder.dto.LocationRequest;
+import com.persons.finder.dto.NearbyRequest;
 import com.persons.finder.dto.PersonRequest;
 import com.persons.finder.dto.PersonResponse;
 import com.persons.finder.exception.SecurityValidationException;
 import com.persons.finder.infrastructure.ai.AiClient;
-import com.persons.finder.domain.repository.PersonRepository;
-import com.persons.finder.domain.repository.SecurityPatternRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,7 +78,6 @@ class PersonServiceTest {
         assertEquals(mockedBio, response.bio());
 
         assertTrue(personRepository.findById(response.id()).isPresent());
-        System.out.println("createPerson success");
     }
 
     @Test
@@ -90,7 +90,6 @@ class PersonServiceTest {
         Person updated = personRepository.findById(savedPersonId).orElseThrow();
         assertEquals(newLat, updated.getLocation().getLatitude(), 0.0001);
         assertEquals(newLon, updated.getLocation().getLongitude(), 0.0001);
-        System.out.println("updateLocation success");
     }
 
     @Test
@@ -99,7 +98,6 @@ class PersonServiceTest {
             LocationRequest request = new LocationRequest(0.0, 0.0);
             personService.updateLocation(99999L, request);
         });
-        System.out.println("updateLocation checked");
     }
 
     @Test
@@ -113,16 +111,13 @@ class PersonServiceTest {
         farPerson.setName("Far User");
         farPerson.setLocation(new Location(-36.84, 174.76));
         personRepository.save(farPerson);
-
-        Slice<PersonResponse> results10km = personService.findNearby(
-                -41.2865, 174.7762, 10.0, PageRequest.of(0, 10));
+        NearbyRequest request10 = new NearbyRequest(-41.2865, 174.7762, 10.0);
+        Slice<PersonResponse> results10km = personService.findNearby(request10, PageRequest.of(0, 10));
         assertEquals(2, results10km.getNumberOfElements(), "2 people should be found within 10km");
 
-        Slice<PersonResponse> results1km = personService.findNearby(
-                -41.2865, 174.7762, 1.0, PageRequest.of(0, 10));
+        NearbyRequest request1 = new NearbyRequest(-41.2865, 174.7762, 1.0);
+        Slice<PersonResponse> results1km = personService.findNearby(request1, PageRequest.of(0, 10));
         assertEquals(1, results1km.getNumberOfElements(), "there should be only one person within 1km");
-
-        System.out.println("findNearby success");
     }
 
     @Test
@@ -134,13 +129,11 @@ class PersonServiceTest {
             personRepository.save(p);
         }
 
-        Slice<PersonResponse> page0 = personService.findNearby(
-                -41.28, 174.77, 10.0, PageRequest.of(0, 2));
+        NearbyRequest request10 = new NearbyRequest(-41.28, 174.77, 10.0);
+        Slice<PersonResponse> page0 = personService.findNearby(request10, PageRequest.of(0, 2));
 
         assertEquals(2, page0.getContent().size());
         assertTrue(page0.hasNext(), "should be a next page");
-
-        System.out.println("findNearby success");
     }
 
     @Test
@@ -163,7 +156,6 @@ class PersonServiceTest {
 
     @Test
     void createPerson_WithDangerousAiOutput_IsSanitized() {
-        // 设置输出过滤模式：包含危险词 "hacked"
         when(securityPatternRepository.findPatternsByType(eq("OUTPUT_FILTER")))
                 .thenReturn(List.of("hacked"));
 

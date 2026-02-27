@@ -1,6 +1,5 @@
 package com.persons.finder.infrastructure.ai;
 
-import com.persons.finder.infrastructure.ai.AiClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,7 +47,6 @@ public class OpenAiClient implements AiClient {
             ResponseEntity<Map> response = restTemplate.postForEntity(apiUrl, entity, Map.class);
 
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                // 这里的解析逻辑保持不变
                 List choices = (List) response.getBody().get("choices");
                 Map message = (Map) ((Map) choices.get(0)).get("message");
                 return (String) message.get("content");

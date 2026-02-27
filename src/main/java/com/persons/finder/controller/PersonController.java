@@ -34,7 +34,7 @@ public class PersonController {
             @Valid NearbyRequest request,
             @PageableDefault(size = 20) Pageable pageable) {
 
-        Slice<PersonResponse> nearbyPeople = personService.findNearby(request.lat(), request.lon(), request.radius(), pageable);
+        Slice<PersonResponse> nearbyPeople = personService.findNearby(request, pageable);
         return ResponseEntity.ok(nearbyPeople);
     }
 
