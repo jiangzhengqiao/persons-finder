@@ -18,7 +18,6 @@ public class RestTemplateConfig {
     public RestTemplate restTemplate() {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
 
-        // 使用注入的配置值
         factory.setConnectTimeout(connectTimeout);
         factory.setReadTimeout(readTimeout);
 

@@ -2,14 +2,17 @@ package com.persons.finder.application;
 
 import com.persons.finder.domain.model.Location;
 import com.persons.finder.domain.model.Person;
+import com.persons.finder.domain.repository.PersonRepository;
+import com.persons.finder.domain.repository.SecurityPatternRepository;
 import com.persons.finder.dto.LocationRequest;
 import com.persons.finder.dto.PersonRequest;
 import com.persons.finder.dto.PersonResponse;
+import com.persons.finder.exception.PersonNotFoundException;
 import com.persons.finder.exception.SecurityValidationException;
 import com.persons.finder.infrastructure.ai.AiClient;
-import com.persons.finder.domain.repository.PersonRepository;
-import com.persons.finder.domain.repository.SecurityPatternRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -48,16 +51,18 @@ class PersonServiceTest {
     @BeforeEach
     void setUp() {
         personRepository.deleteAll();
-        Person p = new Person();
-        p.setName("Alex");
-        p.setJobTitle("Interviewer");
-        p.setLocation(Location.fromCoordinates(-41.2865, 174.7762));
-        p.setHobbies("Sailing, Coding");
+        Person p = Person.builder()
+                .name("Alex")
+                .jobTitle("Interviewer")
+                .location(Location.fromCoordinates(-41.2865, 174.7762))
+                .hobbies("Sailing, Coding")
+                .build();
         p = personRepository.save(p);
         savedPersonId = p.getId();
     }
 
     @Test
+    @DisplayName("createPerson: should generate AI bio and persist the new person")
     void createPerson_WithAiBio_Success() {
         String mockedBio = "Alex Martinez is a tech enthusiast who loves sailing and chess.";
         when(aiClient.generate(anyString())).thenReturn(mockedBio);
@@ -74,10 +79,9 @@ class PersonServiceTest {
 
         assertNotNull(response.id());
         assertEquals("New User", response.name());
-//        assertEquals(mockedBio, response.bio());
+        assertEquals(mockedBio, response.bio());
 
         assertTrue(personRepository.findById(response.id()).isPresent());
-        System.out.println("createPerson success");
     }
 
     @Test
@@ -90,28 +94,28 @@ class PersonServiceTest {
         Person updated = personRepository.findById(savedPersonId).orElseThrow();
         assertEquals(newLat, updated.getLocation().getLatitude(), 0.0001);
         assertEquals(newLon, updated.getLocation().getLongitude(), 0.0001);
-        System.out.println("updateLocation success");
     }
 
     @Test
     void updateLocation_NotFound() {
-        assertThrows(RuntimeException.class, () -> {
+        assertThrows(PersonNotFoundException.class, () -> {
             LocationRequest request = new LocationRequest(0.0, 0.0);
             personService.updateLocation(99999L, request);
         });
-        System.out.println("updateLocation checked");
     }
 
     @Test
     void findNearby_SpatialAccuracy() {
-        Person nearPerson = new Person();
-        nearPerson.setName("Nearby User");
-        nearPerson.setLocation(Location.fromCoordinates(-41.32, 174.78));
+        Person nearPerson = Person.builder()
+                .name("Nearby User")
+                .location(Location.fromCoordinates(-41.32, 174.78))
+                .build();
         personRepository.save(nearPerson);
 
-        Person farPerson = new Person();
-        farPerson.setName("Far User");
-        farPerson.setLocation(Location.fromCoordinates(-36.84, 174.76));
+        Person farPerson = Person.builder()
+                .name("Far User")
+                .location(Location.fromCoordinates(-36.84, 174.76))
+                .build();
         personRepository.save(farPerson);
 
         Slice<PersonResponse> results10km = personService.findNearby(
@@ -121,16 +125,15 @@ class PersonServiceTest {
         Slice<PersonResponse> results1km = personService.findNearby(
                 -41.2865, 174.7762, 1.0, PageRequest.of(0, 10));
         assertEquals(1, results1km.getNumberOfElements(), "there should be only one person within 1km");
-
-        System.out.println("findNearby success");
     }
 
     @Test
     void findNearby_Pagination() {
         for (int i = 0; i < 2; i++) {
-            Person p = new Person();
-            p.setName("Extra " + i);
-            p.setLocation(Location.fromCoordinates(-41.28, 174.77));
+            Person p = Person.builder()
+                    .name("Extra " + i)
+                    .location(Location.fromCoordinates(-41.28, 174.77))
+                    .build();
             personRepository.save(p);
         }
 
@@ -139,8 +142,6 @@ class PersonServiceTest {
 
         assertEquals(2, page0.getContent().size());
         assertTrue(page0.hasNext(), "should be a next page");
-
-        System.out.println("findNearby success");
     }
 
     @Test
@@ -181,6 +182,11 @@ class PersonServiceTest {
         PersonResponse response = personService.createPerson(request);
 
         // 断言 bio 被替换为安全默认值（与 OutputFilterStrategy 中定义一致）
-//        assertEquals("Dedicated professional with a diverse background.", response.bio());
+        assertEquals("Dedicated professional with a diverse background.", response.bio());
+    }
+
+    @AfterEach
+    void tearDown() {
+        personRepository.deleteAll();
     }
 }

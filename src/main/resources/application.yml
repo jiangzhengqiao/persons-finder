@@ -65,10 +65,13 @@ spring:
 # ===================================================================
 app:
   seed-data: true
+  geo:
+    redis-search-limit: 500
   ai:
     mock: false
     api-url: ${APP_AI_API_URL:https://api.openai.com/v1/chat/completions}
     api-key: ${APP_AI_API_KEY:security}
+    model: gpt-4o-mini
 
 # ===================================================================
 # 4. Third-party Tools

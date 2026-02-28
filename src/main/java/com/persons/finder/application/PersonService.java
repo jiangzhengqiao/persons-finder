@@ -7,6 +7,7 @@ import com.persons.finder.domain.service.BioGenerator;
 import com.persons.finder.dto.LocationRequest;
 import com.persons.finder.dto.PersonRequest;
 import com.persons.finder.dto.PersonResponse;
+import com.persons.finder.exception.PersonNotFoundException;
 import com.persons.finder.infrastructure.security.SecurityManager;
 import com.persons.finder.mapper.PersonMapper;
 import lombok.RequiredArgsConstructor;
@@ -35,8 +36,7 @@ public class PersonService {
     @Transactional
     public PersonResponse updateLocation(Long id, LocationRequest request) {
         Person person = personRepository.findById(id)
-                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
-                        org.springframework.http.HttpStatus.NOT_FOUND, "Person not found"));
+                .orElseThrow(() -> new PersonNotFoundException(id));
 
         Location location = Location.fromCoordinates(request.latitude(), request.longitude());
         person.updateLocation(location);

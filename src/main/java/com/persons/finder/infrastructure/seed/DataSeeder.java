@@ -71,12 +71,10 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     public void seedPersonData() {
-        // 1. 清理
         redisTemplate.delete(GEO_KEY);
         jdbcTemplate.execute("TRUNCATE TABLE persons RESTART IDENTITY");
 
-        // 2. SQL 语句 (共 8 个问号)
-        // 对应: id(1), name(2), job_title(3), hobbies(4), bio(5), lon(6), lat(7), version(8)
+        // id(1), name(2), job_title(3), hobbies(4), bio(5), lon(6), lat(7), version(8)
         String sql = "INSERT INTO persons (id, name, job_title, hobbies, bio, location, version, created_at) " +
                 "VALUES (?, ?, ?, ?, ?, ST_SetSRID(ST_MakePoint(?, ?), 4326), ?, CURRENT_TIMESTAMP)";
 
@@ -90,21 +88,16 @@ public class DataSeeder implements CommandLineRunner {
             List<Object[]> dbBatch = new ArrayList<>();
             Map<String, Point> redisBatch = new HashMap<>();
 
-            // 预取 ID
             List<Long> ids = jdbcTemplate.queryForList(
                     "SELECT nextval('persons_id_seq') FROM generate_series(1, " + batchSize + ")", Long.class);
 
             for (int j = 0; j < batchSize; j++) {
                 Long id = ids.get(j);
 
-                // 经度：-180 到 180 (没问题)
                 double lon = -180 + (360 * random.nextDouble());
 
-                // 纬度：修正为 -85 到 85，避开极点
-                // 公式：min + (max - min) * random
                 double lat = -85 + (170 * random.nextDouble());
 
-                // 参数数组对齐 (8个问号)
                 dbBatch.add(new Object[]{
                         id, "Person_" + id, "Engineer_" + j, "Hiking, Coding", "Bio", lon, lat, 0L
                 });
@@ -112,7 +105,7 @@ public class DataSeeder implements CommandLineRunner {
                 redisBatch.put(id.toString(), new Point(lon, lat));
             }
 
-            // 批量执行
+            // batch
             jdbcTemplate.batchUpdate(sql, dbBatch);
             redisTemplate.opsForGeo().add(GEO_KEY, redisBatch);
 

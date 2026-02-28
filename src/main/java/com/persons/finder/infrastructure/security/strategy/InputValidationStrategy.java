@@ -1,7 +1,7 @@
 package com.persons.finder.infrastructure.security.strategy;
 
-import com.persons.finder.exception.SecurityValidationException;
 import com.persons.finder.domain.repository.SecurityPatternRepository;
+import com.persons.finder.exception.SecurityValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

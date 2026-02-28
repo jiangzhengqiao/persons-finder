@@ -40,11 +40,11 @@ public class PersonController {
 
     @PutMapping("/{id}/location")
     @Operation(summary = "Update location", description = "Updates the GPS coordinates for an existing person.")
-    public PersonResponse updateLocation(
+    public ResponseEntity<PersonResponse> updateLocation(
             @PathVariable @Min(1) Long id,
             @Valid @RequestBody LocationRequest request) {
 
-        return personService.updateLocation(id, request);
+        return  ResponseEntity.ok(personService.updateLocation(id, request));
     }
 
     @PostMapping

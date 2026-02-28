@@ -20,7 +20,7 @@ public class OutputFilterStrategy implements SecurityStrategy {
 
     @Override
     public SanitizeResult  sanitizeOutput(String output) {
-        if (output == null) return null;
+        if (output == null) new SanitizeResult("", false);
         List<String> patterns = patternRepository.findPatternsByType("OUTPUT_FILTER");
         for (String pattern : patterns) {
             if (output.toLowerCase().contains(pattern.toLowerCase())) {

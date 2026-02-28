@@ -4,6 +4,7 @@ import com.persons.finder.domain.model.Person;
 import com.persons.finder.domain.repository.PersonRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
@@ -26,15 +27,18 @@ public class PersonRepositoryImpl implements PersonRepository {
     private final RedisTemplate<String, String> redisTemplate;
     private static final String GEO_KEY = "person_locations";
 
+    @Value("${app.geo.redis-search-limit:500}")
+    private int redisSearchLimit;
+
     @Override
     public Slice<Person> findNearby(double lat, double lon, double radiusKm, Pageable pageable) {
         try {
-            // 1. 尝试使用 Redis 搜索
             GeoResults<RedisGeoCommands.GeoLocation<String>> geoResults = redisTemplate.opsForGeo()
                     .search(GEO_KEY,
                             GeoReference.fromCoordinate(lon, lat),
                             new Distance(radiusKm, Metrics.KILOMETERS),
-                            RedisGeoCommands.GeoSearchCommandArgs.newGeoSearchArgs().sortAscending().limit(500));
+                            RedisGeoCommands.GeoSearchCommandArgs.newGeoSearchArgs().sortAscending()
+                                    .limit(redisSearchLimit));
 
             if (geoResults != null && !geoResults.getContent().isEmpty()) {
                 List<GeoResult<RedisGeoCommands.GeoLocation<String>>> allResults = geoResults.getContent();
@@ -46,11 +50,9 @@ public class PersonRepositoryImpl implements PersonRepository {
                             .map(res -> Long.parseLong(res.getContent().getName()))
                             .toList();
 
-                    // 批量获取 DB 数据
                     Map<Long, Person> personMap = jpaRepo.findAllByIdIn(orderedIds).stream()
                             .collect(Collectors.toMap(Person::getId, p -> p));
 
-                    // 保持 Redis 返回的距离顺序
                     List<Person> orderedPersons = orderedIds.stream()
                             .map(personMap::get)
                             .filter(Objects::nonNull)
@@ -62,12 +64,11 @@ public class PersonRepositoryImpl implements PersonRepository {
             return new SliceImpl<>(Collections.emptyList(), pageable, false);
 
         } catch (Exception e) {
-            // 2. Redis 异常时触发降级：直接查询 PostGIS
             log.error("CRITICAL: Redis search failed. Falling back to PostGIS spatial query for lat:{}, lon:{}", lat, lon, e);
 
             List<Person> dbResults = jpaRepo.findNearbyWithPostgis(
                     lat, lon, radiusKm,
-                    pageable.getPageSize() + 1, // 多查一个用于判断 hasNext
+                    pageable.getPageSize() + 1,
                     pageable.getOffset()
             );
 
@@ -105,7 +106,7 @@ public class PersonRepositoryImpl implements PersonRepository {
     @Override
     public void deleteAll() {
         // 1. Clean database
-        jpaRepo.deleteAll();
+        jpaRepo.truncateTableNative();
 
         // 2. Clean up GEO Key in Redis
         redisTemplate.delete(GEO_KEY);

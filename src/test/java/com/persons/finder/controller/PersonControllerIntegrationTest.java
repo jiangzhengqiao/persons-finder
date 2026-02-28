@@ -4,10 +4,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.persons.finder.domain.model.Location;
 import com.persons.finder.domain.model.Person;
+import com.persons.finder.domain.repository.PersonRepository;
 import com.persons.finder.dto.LocationRequest;
 import com.persons.finder.dto.PersonRequest;
 import com.persons.finder.dto.PersonResponse;
-import com.persons.finder.domain.repository.PersonRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,16 +34,13 @@ public class PersonControllerIntegrationTest {
     @Autowired
     private PersonRepository personRepository;
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
     @BeforeEach
     void cleanUp() {
         personRepository.deleteAll();
     }
 
     @Test
-    void createPerson_ShouldReturnCreatedPersonWithMockBio() throws Exception {
+    void createPerson_ShouldReturnCreatedPersonWithMockBio() {
         // Given
         PersonRequest request = new PersonRequest(
                 "John Doe",
@@ -137,7 +135,7 @@ public class PersonControllerIntegrationTest {
         HttpEntity<LocationRequest> entity = new HttpEntity<>(updateRequest, headers);
 
         ResponseEntity<String> response = restTemplate.exchange(
-                "/api/v1/persons/99999/location",
+                "/api/v1/persons/9999999/location",
                 HttpMethod.PUT,
                 entity,
                 String.class
@@ -148,22 +146,25 @@ public class PersonControllerIntegrationTest {
 
     @Test
     void findNearby_ShouldReturnPeopleWithinRadiusSortedByDistance() {
-        Person personA = new Person();
-        personA.setName("Nearby Person");
-        personA.setLocation(Location.fromCoordinates(40.7130, -74.0065));
-        personA.setBio("Bio A");
+        Person personA = Person.builder()
+                .name("Nearby Person")
+                .location(Location.fromCoordinates(40.7130, -74.0065))
+                .build();
+        personA.assignBio("Bio A");
         personRepository.save(personA);
 
-        Person personB = new Person();
-        personB.setName("Medium Person");
-        personB.setLocation(Location.fromCoordinates(40.7150, -74.0100));
-        personB.setBio("Bio B");
+        Person personB = Person.builder()
+                .name("Medium Person")
+                .location(Location.fromCoordinates(40.7150, -74.0100))
+                .build();
+        personB.assignBio("Bio B");
         personRepository.save(personB);
 
-        Person personC = new Person();
-        personC.setName("Far Person");
-        personC.setLocation(Location.fromCoordinates(41.0000, -74.0000));
-        personC.setBio("Bio C");
+        Person personC = Person.builder()
+                .name("Far Person")
+                .location(Location.fromCoordinates(41.0000, -74.0000))
+                .build();
+        personC.assignBio("Bio C");
         personRepository.save(personC);
 
         ResponseEntity<JsonNode> response = restTemplate.getForEntity(
@@ -201,5 +202,10 @@ public class PersonControllerIntegrationTest {
             content = body;
         }
         assertThat(content).isEmpty();
+    }
+
+    @AfterEach
+    void tearDown() {
+        personRepository.deleteAll();
     }
 }
