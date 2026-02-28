@@ -76,7 +76,7 @@ public class DataSeeder implements CommandLineRunner {
 
         // id(1), name(2), job_title(3), hobbies(4), bio(5), lon(6), lat(7), version(8)
         String sql = "INSERT INTO persons (id, name, job_title, hobbies, bio, location, version, created_at) " +
-                "VALUES (?, ?, ?, ?, ?, ST_SetSRID(ST_MakePoint(?, ?), 4326), ?, CURRENT_TIMESTAMP)";
+                "VALUES (?, ?, ?, ?, ?, ST_SetSRID(ST_Point(?, ?), 4326), ?, CURRENT_TIMESTAMP)";
 
         Random random = new Random();
         int totalRecords = 1_000_000;
@@ -119,11 +119,12 @@ public class DataSeeder implements CommandLineRunner {
     private void createSpatialIndex() {
         try {
             //
-            String sql = "SELECT indexname FROM pg_indexes WHERE indexname = ?";
-            List<String> results = jdbcTemplate.queryForList(sql, String.class, "idx_location_point");
+            String indexName = "idx_persons_location_geography";
+            String checkIndexSql = "SELECT indexname FROM pg_indexes WHERE indexname = ?";
+            List<String> results = jdbcTemplate.queryForList(checkIndexSql, String.class, indexName);
             if (results.isEmpty()) {
                 //
-                String createIndexSql = "CREATE INDEX idx_location_point ON persons USING GIST (location)";
+                String createIndexSql = "CREATE INDEX " + indexName + " ON persons USING GIST ((location::geography))";
                 jdbcTemplate.execute(createIndexSql);
                 log.info("Spatial index idx_location_point created successfully.");
             } else {
