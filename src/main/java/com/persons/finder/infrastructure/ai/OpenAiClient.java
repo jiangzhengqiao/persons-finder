@@ -29,6 +29,10 @@ public class OpenAiClient implements AiClient {
     @Value("${app.ai.api-key}")
     private String apiKey;
 
+    @Value("${app.ai.model}")
+    private String model;
+
+
     @Override
     public String generate(String prompt) {
         log.info("Preparing to send prompt to AI at: {}", apiUrl);
@@ -39,21 +43,19 @@ public class OpenAiClient implements AiClient {
             headers.setBearerAuth(apiKey);
 
             Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("model", "gpt-3.5-turbo");
+            requestBody.put("model", model);
             requestBody.put("messages", List.of(Map.of("role", "user", "content", prompt)));
 
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+            ResponseEntity<OpenAiResponse> response = restTemplate
+                    .postForEntity(apiUrl, entity, OpenAiResponse.class);
 
-            ResponseEntity<Map> response = restTemplate.postForEntity(apiUrl, entity, Map.class);
-
-            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                List choices = (List) response.getBody().get("choices");
-                Map message = (Map) ((Map) choices.get(0)).get("message");
-                return (String) message.get("content");
+            if (response.getStatusCode().is2xxSuccessful()
+                    && response.getBody() != null
+                    && !response.getBody().choices().isEmpty()) {
+                return response.getBody().choices().get(0).message().content();
             }
-
-            throw new RuntimeException("AI API responded with error status: " + response.getStatusCode());
-
+            throw new RuntimeException("AI API responded with error: " + response.getStatusCode());
         } catch (Exception e) {
             log.error("AI service communication error: {}", e.getMessage());
             throw new RuntimeException("AI service unavailable, please try again later.");

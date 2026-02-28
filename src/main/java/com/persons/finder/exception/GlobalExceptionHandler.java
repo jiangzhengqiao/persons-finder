@@ -24,7 +24,6 @@ public class GlobalExceptionHandler {
     // 2. security
     @ExceptionHandler(SecurityValidationException.class)
     public ResponseEntity<ErrorResponse> handleSecurityException(SecurityValidationException ex, WebRequest request) {
-        // 使用 403 表示禁止执行该非法操作
         return buildResponse(HttpStatus.FORBIDDEN, "Security Policy Violation", ex.getMessage(), request);
     }
 
@@ -57,6 +56,18 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex, WebRequest request) {
 //        ex.printStackTrace();
         return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", "An unexpected error occurred. Please contact support.", request);
+    }
+
+    // 6.Manually initiated illegal parameter exception in business logic
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex, WebRequest request) {
+        return buildResponse(HttpStatus.BAD_REQUEST, "Validation Error", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(PersonNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handlePersonNotFound(
+            PersonNotFoundException ex, WebRequest request) {
+        return buildResponse(HttpStatus.NOT_FOUND, "Not Found", ex.getMessage(), request);
     }
 
     private ResponseEntity<ErrorResponse> buildResponse(HttpStatus status, String errorType, String message, WebRequest request) {

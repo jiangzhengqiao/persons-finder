@@ -19,10 +19,9 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@TestPropertySource(properties = "app.ai.mock=true") // 确保 AI 无关
+@TestPropertySource(properties = "app.ai.mock=true")
 class NearbyPerformanceTest {
 
     @Autowired

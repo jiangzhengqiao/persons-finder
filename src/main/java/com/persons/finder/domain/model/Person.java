@@ -1,6 +1,9 @@
 package com.persons.finder.domain.model;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -9,13 +12,11 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "persons", indexes = {
-        @Index(name = "idx_location", columnList = "latitude, longitude")
-})
+@Access(AccessType.FIELD)
+@Table(name = "persons")
 public class Person {
 
     @Id
@@ -44,4 +45,19 @@ public class Person {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    public void updateLocation(Location newLocation) {
+        if (newLocation == null) {
+            throw new IllegalArgumentException("Location cannot be null");
+        }
+        this.location = newLocation;
+    }
+
+    public void assignBio(String bio) {
+        if (bio == null || bio.isBlank()) {
+            throw new IllegalArgumentException("Bio cannot be empty");
+        }
+        this.bio = bio;
+    }
+
 }

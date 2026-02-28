@@ -4,31 +4,36 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="af9b6852-b586-4b20-b547-aaca1e887bfb" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/codeStyles/codeStyleConfig.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/kotlinc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules/PersonsFinder.main.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/persons/finder/controller/PersonController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/persons/finder/domain/Person.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/persons/finder/domain/SecurityPattern.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/persons/finder/dto/PersonRequest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/persons/finder/dto/PersonResponse.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/persons/finder/exception/BusinessException.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/persons/finder/exception/ErrorResponse.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/persons/finder/exception/GlobalExceptionHandler.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/persons/finder/exception/SecurityValidationException.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/persons/finder/repository/PersonRepository.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/persons/finder/repository/SecurityPatternRepository.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/persons/finder/seed/DataSeeder.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/persons/finder/service/PersonService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+    <list default="true" id="af9b6852-b586-4b20-b547-aaca1e887bfb" name="Changes" comment="Feat: delete useless debugging information and organize parameters">
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/persons/finder/exception/PersonNotFoundException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/persons/finder/infrastructure/ai/OpenAiResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/com/persons/finder/application/PersonServiceUnitTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/persons/finder/application/PersonService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/persons/finder/application/PersonService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/persons/finder/config/RedisConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/persons/finder/config/RedisConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/persons/finder/config/RestTemplateConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/persons/finder/config/RestTemplateConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/persons/finder/controller/PersonController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/persons/finder/controller/PersonController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/persons/finder/domain/model/Person.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/persons/finder/domain/model/Person.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/persons/finder/exception/GlobalExceptionHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/persons/finder/exception/GlobalExceptionHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/persons/finder/infrastructure/ai/OpenAiClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/persons/finder/infrastructure/ai/OpenAiClient.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/persons/finder/infrastructure/persistence/JpaPersonRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/persons/finder/infrastructure/persistence/JpaPersonRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/persons/finder/infrastructure/persistence/PersonRepositoryImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/persons/finder/infrastructure/persistence/PersonRepositoryImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/persons/finder/infrastructure/security/strategy/InputValidationStrategy.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/persons/finder/infrastructure/security/strategy/InputValidationStrategy.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/persons/finder/infrastructure/security/strategy/OutputFilterStrategy.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/persons/finder/infrastructure/security/strategy/OutputFilterStrategy.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/persons/finder/infrastructure/seed/DataSeeder.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/persons/finder/infrastructure/seed/DataSeeder.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/persons/finder/data/Location.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/persons/finder/data/Person.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/persons/finder/domain/services/LocationsService.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/persons/finder/domain/services/LocationsServiceImpl.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/persons/finder/domain/services/PersonsService.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/persons/finder/domain/services/PersonsServiceImpl.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/persons/finder/presentation/PersonController.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/persons/finder/application/PersonServiceTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/com/persons/finder/application/PersonServiceTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/persons/finder/controller/PersonControllerIntegrationTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/com/persons/finder/controller/PersonControllerIntegrationTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/persons/finder/performance/NearbyPerformanceTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/com/persons/finder/performance/NearbyPerformanceTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/kotlin/com/persons/finder/DemoApplicationTests.kt" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -43,6 +48,9 @@
   <component name="ExternalProjectsManager">
     <system id="GRADLE">
       <state>
+        <task path="$PROJECT_DIR$">
+          <activation />
+        </task>
         <projects_view>
           <tree_state>
             <expand />
@@ -62,6 +70,9 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="HttpClientSelectedEnvironments">
+    <file url="jar://$APPLICATION_HOME_DIR$/plugins/restClient/lib/restClient.jar!/com/intellij/ws/rest/client/requests/collection/get-requests.http" environment="test" />
+  </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
@@ -74,31 +85,66 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
-    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
-    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
-    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
-    &quot;ruby.rails.projectView.checked&quot;: &quot;true&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;advanced.settings&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RequestMappingsPanelOrder0": "0",
+    "RequestMappingsPanelOrder1": "1",
+    "RequestMappingsPanelWidth0": "75",
+    "RequestMappingsPanelWidth1": "75",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "android.gradle.sync.needed": "true",
+    "git-widget-placeholder": "refactor/optimizations",
+    "jdk.selected.JAVA_MODULE": "17",
+    "last_opened_file_path": "/Users/jiangzq/persons-finder",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Project",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.2",
+    "ruby.rails.projectView.checked": "true",
+    "settings.editor.selected.configurable": "SQL Dialects",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
-  <component name="RunManager">
+}]]></component>
+  <component name="ReactorSettings">
+    <option name="notificationShown" value="true" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Spring Boot.ApplicationStarter">
+    <configuration name="PersonControllerIntegrationTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" value="" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value=":test" />
+            <option value="--tests" />
+            <option value="&quot;com.persons.finder.controller.PersonControllerIntegrationTest&quot;" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>true</RunAsTest>
+      <method v="2" />
+    </configuration>
     <configuration default="true" type="JetRunConfigurationType">
       <module name="persons-finder" />
       <method v="2">
@@ -125,9 +171,14 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <list>
+      <item itemvalue="Gradle.PersonControllerIntegrationTest" />
+      <item itemvalue="Spring Boot.ApplicationStarter" />
+    </list>
     <recent_temporary>
       <list>
         <item itemvalue="Spring Boot.ApplicationStarter" />
+        <item itemvalue="Gradle.PersonControllerIntegrationTest" />
       </list>
     </recent_temporary>
   </component>
@@ -141,11 +192,57 @@
       <updated>1771546137769</updated>
       <workItem from="1771546139918" duration="1991000" />
       <workItem from="1771548156390" duration="1158000" />
+      <workItem from="1772052247974" duration="33730000" />
+      <workItem from="1772136869744" duration="297000" />
+      <workItem from="1772223584554" duration="1678000" />
+      <workItem from="1772227740263" duration="9360000" />
     </task>
+    <task id="LOCAL-00001" summary="feat: implement resilient spatial search with Redis and PostGIS fallback">
+      <option name="closed" value="true" />
+      <created>1772089751775</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1772089751775</updated>
+    </task>
+    <task id="LOCAL-00002" summary="docs: add performance benchmarks and reproduction guide&#10;&#10;- Included 1M record benchmark results for Redis, PostGIS, and H2.&#10;- Documented hardware environment (Apple M1) and testing tool (wrk).&#10;- Added 'How to Reproduce' section featuring automated DataSeed logic.&#10;- Comparative analysis of RPS and P99 latency across different engines.">
+      <option name="closed" value="true" />
+      <created>1772092371856</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1772092371856</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Feat: delete useless debugging information and organize parameters">
+      <option name="closed" value="true" />
+      <created>1772225093375</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1772225093375</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="feat: implement resilient spatial search with Redis and PostGIS fallback" />
+    <MESSAGE value="docs: add performance benchmarks and reproduction guide&#10;&#10;- Included 1M record benchmark results for Redis, PostGIS, and H2.&#10;- Documented hardware environment (Apple M1) and testing tool (wrk).&#10;- Added 'How to Reproduce' section featuring automated DataSeed logic.&#10;- Comparative analysis of RPS and P99 latency across different engines." />
+    <MESSAGE value="Feat: delete useless debugging information and organize parameters" />
+    <option name="LAST_COMMIT_MESSAGE" value="Feat: delete useless debugging information and organize parameters" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

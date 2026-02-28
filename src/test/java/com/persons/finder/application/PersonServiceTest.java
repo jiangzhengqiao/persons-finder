@@ -8,9 +8,12 @@ import com.persons.finder.dto.LocationRequest;
 import com.persons.finder.dto.NearbyRequest;
 import com.persons.finder.dto.PersonRequest;
 import com.persons.finder.dto.PersonResponse;
+import com.persons.finder.exception.PersonNotFoundException;
 import com.persons.finder.exception.SecurityValidationException;
 import com.persons.finder.infrastructure.ai.AiClient;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -49,16 +52,18 @@ class PersonServiceTest {
     @BeforeEach
     void setUp() {
         personRepository.deleteAll();
-        Person p = new Person();
-        p.setName("Alex");
-        p.setJobTitle("Interviewer");
-        p.setLocation(new Location(-41.2865, 174.7762));
-        p.setHobbies("Sailing, Coding");
+        Person p = Person.builder()
+                .name("Alex")
+                .jobTitle("Interviewer")
+                .location(Location.fromCoordinates(-41.2865, 174.7762))
+                .hobbies("Sailing, Coding")
+                .build();
         p = personRepository.save(p);
         savedPersonId = p.getId();
     }
 
     @Test
+    @DisplayName("createPerson: should generate AI bio and persist the new person")
     void createPerson_WithAiBio_Success() {
         String mockedBio = "Alex Martinez is a tech enthusiast who loves sailing and chess.";
         when(aiClient.generate(anyString())).thenReturn(mockedBio);
@@ -94,7 +99,7 @@ class PersonServiceTest {
 
     @Test
     void updateLocation_NotFound() {
-        assertThrows(RuntimeException.class, () -> {
+        assertThrows(PersonNotFoundException.class, () -> {
             LocationRequest request = new LocationRequest(0.0, 0.0);
             personService.updateLocation(99999L, request);
         });
@@ -102,14 +107,16 @@ class PersonServiceTest {
 
     @Test
     void findNearby_SpatialAccuracy() {
-        Person nearPerson = new Person();
-        nearPerson.setName("Nearby User");
-        nearPerson.setLocation(new Location(-41.32, 174.78));
+        Person nearPerson = Person.builder()
+                .name("Nearby User")
+                .location(Location.fromCoordinates(-41.32, 174.78))
+                .build();
         personRepository.save(nearPerson);
 
-        Person farPerson = new Person();
-        farPerson.setName("Far User");
-        farPerson.setLocation(new Location(-36.84, 174.76));
+        Person farPerson = Person.builder()
+                .name("Far User")
+                .location(Location.fromCoordinates(-36.84, 174.76))
+                .build();
         personRepository.save(farPerson);
         NearbyRequest request10 = new NearbyRequest(-41.2865, 174.7762, 10.0);
         Slice<PersonResponse> results10km = personService.findNearby(request10, PageRequest.of(0, 10));
@@ -123,9 +130,10 @@ class PersonServiceTest {
     @Test
     void findNearby_Pagination() {
         for (int i = 0; i < 2; i++) {
-            Person p = new Person();
-            p.setName("Extra " + i);
-            p.setLocation(new Location(-41.28, 174.77));
+            Person p = Person.builder()
+                    .name("Extra " + i)
+                    .location(Location.fromCoordinates(-41.28, 174.77))
+                    .build();
             personRepository.save(p);
         }
 
@@ -174,5 +182,10 @@ class PersonServiceTest {
 
         // 断言 bio 被替换为安全默认值（与 OutputFilterStrategy 中定义一致）
         assertEquals("Dedicated professional with a diverse background.", response.bio());
+    }
+
+    @AfterEach
+    void tearDown() {
+        personRepository.deleteAll();
     }
 }
