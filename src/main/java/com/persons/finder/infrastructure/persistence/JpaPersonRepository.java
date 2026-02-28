@@ -16,14 +16,14 @@ public interface JpaPersonRepository extends JpaRepository<Person, Long> {
 
     @Query(value = """
             SELECT * FROM persons 
-            WHERE ST_DWithin(location::geography, ST_SetSRID(ST_Point(:lon, :lat), 4326)::geography, :radiusKm * 1000) 
-            ORDER BY location::geography <-> ST_SetSRID(ST_Point(:lon, :lat), 4326)::geography
+            WHERE ST_DWithin(location, ST_SetSRID(ST_Point(:lon, :lat), 4326), :radiusInDegrees) 
+            ORDER BY location <-> ST_SetSRID(ST_Point(:lon, :lat), 4326)
             LIMIT :limit OFFSET :offset
             """, nativeQuery = true)
     List<Person> findNearbyWithPostgis(
             @Param("lat") double lat,
             @Param("lon") double lon,
-            @Param("radiusKm") double radiusKm,
+            @Param("radiusInDegrees") double radiusInDegrees,
             @Param("limit") int limit,
             @Param("offset") long offset);
 

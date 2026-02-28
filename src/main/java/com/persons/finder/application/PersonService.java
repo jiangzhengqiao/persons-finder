@@ -1,5 +1,6 @@
 package com.persons.finder.application;
 
+import com.persons.finder.domain.event.PersonLocationUpdatedEvent;
 import com.persons.finder.domain.model.Location;
 import com.persons.finder.domain.model.Person;
 import com.persons.finder.domain.repository.PersonRepository;
@@ -13,6 +14,7 @@ import com.persons.finder.infrastructure.security.SecurityManager;
 import com.persons.finder.mapper.PersonMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,7 @@ public class PersonService {
     private final BioGenerator bioGenerator;
     private final PersonMapper personMapper;
     private final SecurityManager securityManager;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional(readOnly = true)
     public Slice<PersonResponse> findNearby(NearbyRequest request, Pageable pageable) {
@@ -43,6 +46,7 @@ public class PersonService {
         person.updateLocation(location);
 
         Person saved = personRepository.save(person);
+        eventPublisher.publishEvent(new PersonLocationUpdatedEvent(saved));
         return personMapper.toResponse(saved);
     }
 
@@ -68,6 +72,7 @@ public class PersonService {
         person.assignBio(bio);
 
         Person saved = personRepository.save(person);
+        eventPublisher.publishEvent(new PersonLocationUpdatedEvent(saved));
         return personMapper.toResponse(saved);
     }
 }

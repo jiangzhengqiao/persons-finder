@@ -8,7 +8,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
-import org.springframework.data.geo.*;
+import org.springframework.data.geo.Distance;
+import org.springframework.data.geo.GeoResult;
+import org.springframework.data.geo.GeoResults;
+import org.springframework.data.geo.Metrics;
 import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.domain.geo.GeoReference;
@@ -65,9 +68,9 @@ public class PersonRepositoryImpl implements PersonRepository {
 
         } catch (Exception e) {
             log.error("CRITICAL: Redis search failed. Falling back to PostGIS spatial query for lat:{}, lon:{}", lat, lon, e);
-
+            double radiusInDegrees = radiusKm / 111.0;
             List<Person> dbResults = jpaRepo.findNearbyWithPostgis(
-                    lat, lon, radiusKm,
+                    lat, lon, radiusInDegrees,
                     pageable.getPageSize() + 1,
                     pageable.getOffset()
             );
@@ -87,28 +90,11 @@ public class PersonRepositoryImpl implements PersonRepository {
     @Override
     @Transactional
     public Person save(Person person) {
-        // 1. save db
-        Person saved = jpaRepo.save(person);
-
-        // 2. update Redis GEO
-        if (saved.getLocation() != null) {
-            redisTemplate.opsForGeo().add(GEO_KEY,
-                    new Point(
-                            saved.getLocation().getLongitude(),
-                            saved.getLocation().getLatitude()
-                    ),
-                    saved.getId().toString()
-            );
-        }
-        return saved;
+        return jpaRepo.save(person);
     }
 
     @Override
     public void deleteAll() {
-        // 1. Clean database
         jpaRepo.truncateTableNative();
-
-        // 2. Clean up GEO Key in Redis
-        redisTemplate.delete(GEO_KEY);
     }
 }

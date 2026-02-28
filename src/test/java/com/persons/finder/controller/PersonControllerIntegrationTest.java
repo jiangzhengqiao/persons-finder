@@ -1,7 +1,7 @@
 package com.persons.finder.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.persons.finder.domain.event.AllPersonsDeletedEvent;
 import com.persons.finder.domain.model.Location;
 import com.persons.finder.domain.model.Person;
 import com.persons.finder.domain.repository.PersonRepository;
@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.*;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
@@ -34,9 +35,13 @@ public class PersonControllerIntegrationTest {
     @Autowired
     private PersonRepository personRepository;
 
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
+
     @BeforeEach
     void cleanUp() {
         personRepository.deleteAll();
+        eventPublisher.publishEvent(new AllPersonsDeletedEvent());
     }
 
     @Test
@@ -207,5 +212,6 @@ public class PersonControllerIntegrationTest {
     @AfterEach
     void tearDown() {
         personRepository.deleteAll();
+        eventPublisher.publishEvent(new AllPersonsDeletedEvent());
     }
 }

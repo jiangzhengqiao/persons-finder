@@ -1,5 +1,6 @@
 package com.persons.finder.application;
 
+import com.persons.finder.domain.event.AllPersonsDeletedEvent;
 import com.persons.finder.domain.model.Location;
 import com.persons.finder.domain.model.Person;
 import com.persons.finder.domain.repository.PersonRepository;
@@ -18,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.test.context.ActiveProfiles;
@@ -41,6 +43,9 @@ class PersonServiceTest {
     @Autowired
     private PersonRepository personRepository;
 
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
+
     @MockBean
     private AiClient aiClient;
 
@@ -52,6 +57,7 @@ class PersonServiceTest {
     @BeforeEach
     void setUp() {
         personRepository.deleteAll();
+        eventPublisher.publishEvent(new AllPersonsDeletedEvent());
         Person p = Person.builder()
                 .name("Alex")
                 .jobTitle("Interviewer")
@@ -187,5 +193,6 @@ class PersonServiceTest {
     @AfterEach
     void tearDown() {
         personRepository.deleteAll();
+        eventPublisher.publishEvent(new AllPersonsDeletedEvent());
     }
 }

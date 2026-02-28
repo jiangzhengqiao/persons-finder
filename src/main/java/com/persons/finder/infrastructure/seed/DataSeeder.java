@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.data.geo.Point;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -31,6 +32,7 @@ public class DataSeeder implements CommandLineRunner {
 
     //    @Async
     @Override
+    @Async("seedExecutor")
     public void run(String... args) throws Exception {
         if (!seedData) {
             return;
@@ -119,12 +121,12 @@ public class DataSeeder implements CommandLineRunner {
     private void createSpatialIndex() {
         try {
             //
-            String indexName = "idx_persons_location_geography";
+            String indexName = "idx_persons_location_gist";
             String checkIndexSql = "SELECT indexname FROM pg_indexes WHERE indexname = ?";
             List<String> results = jdbcTemplate.queryForList(checkIndexSql, String.class, indexName);
             if (results.isEmpty()) {
                 //
-                String createIndexSql = "CREATE INDEX " + indexName + " ON persons USING GIST ((location::geography))";
+                String createIndexSql = "CREATE INDEX " + indexName + " ON persons USING GIST (location)";
                 jdbcTemplate.execute(createIndexSql);
                 log.info("Spatial index idx_location_point created successfully.");
             } else {
