@@ -56,9 +56,10 @@ spring:
     lettuce:
       shutdown-timeout: 100ms
       pool:
-        max-active: 100
-        max-idle: 50
-        min-idle: 10
+        enabled: true
+        max-active: 50
+        max-idle: 20
+        min-idle: 5
 
 # ===================================================================
 # 3. Custom Business Logic

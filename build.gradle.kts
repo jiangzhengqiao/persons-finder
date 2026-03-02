@@ -10,7 +10,6 @@ plugins {
 
 group = "com.persons.finder"
 version = "0.0.1-SNAPSHOT"
-java.sourceCompatibility = JavaVersion.VERSION_11
 
 repositories {
     mavenCentral()
@@ -40,6 +39,7 @@ dependencies {
     implementation("org.hibernate:hibernate-spatial:5.6.15.Final")
 
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
+    implementation("org.apache.commons:commons-pool2")
 
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
