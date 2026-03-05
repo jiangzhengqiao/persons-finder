@@ -1,6 +1,10 @@
 package com.persons.finder.domain.event;
 
-import com.persons.finder.domain.model.Person;
+import org.springframework.data.geo.Point;
 
-public record PersonLocationUpdatedEvent(Person person) {
+public record PersonLocationUpdatedEvent(
+        Long personId,
+        Point oldLocation,
+        Point newLocation
+) {
 }

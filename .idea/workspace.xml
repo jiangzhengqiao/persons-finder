@@ -4,14 +4,19 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="af9b6852-b586-4b20-b547-aaca1e887bfb" name="Changes" comment="refactor: implement Observer Pattern for Redis sync using Spring Events">
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/persons/finder/infrastructure/persistence/JpaSecurityPatternRepository.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/persons/finder/infrastructure/persistence/SecurityPatternRepositoryImpl.java" afterDir="false" />
+    <list default="true" id="af9b6852-b586-4b20-b547-aaca1e887bfb" name="Changes" comment="refactor: decouple repository from domain layer">
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/persons/finder/infrastructure/seed/City.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/persons/finder/utils/GeoShardingUtil.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/http-requests-log.http" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/httpRequests/http-requests-log.http" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/random_search.lua" beforeDir="false" afterPath="$PROJECT_DIR$/random_search.lua" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/persons/finder/domain/repository/SecurityPatternRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/persons/finder/domain/repository/SecurityPatternRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/persons/finder/infrastructure/util/GeoUtils.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/requests.http" beforeDir="false" afterPath="$PROJECT_DIR$/requests.http" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/persons/finder/application/PersonService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/persons/finder/application/PersonService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/persons/finder/domain/event/PersonDeletedEvent.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/persons/finder/domain/event/PersonLocationUpdatedEvent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/persons/finder/domain/event/PersonLocationUpdatedEvent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/persons/finder/infrastructure/persistence/PersonRepositoryImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/persons/finder/infrastructure/persistence/PersonRepositoryImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/persons/finder/infrastructure/persistence/RedisSyncListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/persons/finder/infrastructure/persistence/RedisSyncListener.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/persons/finder/infrastructure/seed/DataSeeder.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/persons/finder/infrastructure/seed/DataSeeder.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -100,101 +105,17 @@
       <recent name="$PROJECT_DIR$" />
     </key>
   </component>
-  <component name="RunManager" selected="Spring Boot.ApplicationStarter">
-    <configuration name="NearbyPerformanceTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
-      <ExternalSystemSettings>
-        <option name="executionName" />
-        <option name="externalProjectPath" value="$PROJECT_DIR$" />
-        <option name="externalSystemIdString" value="GRADLE" />
-        <option name="scriptParameters" value="" />
-        <option name="taskDescriptions">
-          <list />
-        </option>
-        <option name="taskNames">
-          <list>
-            <option value=":test" />
-            <option value="--tests" />
-            <option value="&quot;com.persons.finder.performance.NearbyPerformanceTest&quot;" />
-          </list>
-        </option>
-        <option name="vmOptions" />
-      </ExternalSystemSettings>
-      <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
-      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
-      <DebugAllEnabled>false</DebugAllEnabled>
-      <RunAsTest>true</RunAsTest>
+  <component name="RunManager" selected="HTTP Request.requests | 1. Create New Person (Normal)">
+    <configuration name="requests | 1. Create New Person (Normal)" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$PROJECT_DIR$/requests.http" requestIdentifier="1. Create New Person (Normal)" runType="Run single request">
       <method v="2" />
     </configuration>
-    <configuration name="PersonControllerIntegrationTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
-      <ExternalSystemSettings>
-        <option name="executionName" />
-        <option name="externalProjectPath" value="$PROJECT_DIR$" />
-        <option name="externalSystemIdString" value="GRADLE" />
-        <option name="scriptParameters" value="" />
-        <option name="taskDescriptions">
-          <list />
-        </option>
-        <option name="taskNames">
-          <list>
-            <option value=":test" />
-            <option value="--tests" />
-            <option value="&quot;com.persons.finder.controller.PersonControllerIntegrationTest&quot;" />
-          </list>
-        </option>
-        <option name="vmOptions" />
-      </ExternalSystemSettings>
-      <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
-      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
-      <DebugAllEnabled>false</DebugAllEnabled>
-      <RunAsTest>true</RunAsTest>
+    <configuration name="requests | 4. Update Location (Normal)" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$PROJECT_DIR$/requests.http" index="4" requestIdentifier="4. Update Location (Normal)" runType="Run single request">
       <method v="2" />
     </configuration>
-    <configuration name="PersonServiceTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
-      <ExternalSystemSettings>
-        <option name="executionName" />
-        <option name="externalProjectPath" value="$PROJECT_DIR$" />
-        <option name="externalSystemIdString" value="GRADLE" />
-        <option name="scriptParameters" value="" />
-        <option name="taskDescriptions">
-          <list />
-        </option>
-        <option name="taskNames">
-          <list>
-            <option value=":test" />
-            <option value="--tests" />
-            <option value="&quot;com.persons.finder.application.PersonServiceTest&quot;" />
-          </list>
-        </option>
-        <option name="vmOptions" />
-      </ExternalSystemSettings>
-      <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
-      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
-      <DebugAllEnabled>false</DebugAllEnabled>
-      <RunAsTest>true</RunAsTest>
+    <configuration name="requests | 7. Nearby Search (Normal)" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$PROJECT_DIR$/requests.http" index="7" requestIdentifier="7. Nearby Search (Normal)" runType="Run single request">
       <method v="2" />
     </configuration>
-    <configuration name="PersonServiceUnitTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
-      <ExternalSystemSettings>
-        <option name="executionName" />
-        <option name="externalProjectPath" value="$PROJECT_DIR$" />
-        <option name="externalSystemIdString" value="GRADLE" />
-        <option name="scriptParameters" value="" />
-        <option name="taskDescriptions">
-          <list />
-        </option>
-        <option name="taskNames">
-          <list>
-            <option value=":test" />
-            <option value="--tests" />
-            <option value="&quot;com.persons.finder.application.PersonServiceUnitTest&quot;" />
-          </list>
-        </option>
-        <option name="vmOptions" />
-      </ExternalSystemSettings>
-      <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
-      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
-      <DebugAllEnabled>false</DebugAllEnabled>
-      <RunAsTest>true</RunAsTest>
+    <configuration name="requests | 8. Nearby Search - Invalid Parameter" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$PROJECT_DIR$/requests.http" index="8" requestIdentifier="8. Nearby Search - Invalid Parameter" runType="Run single request">
       <method v="2" />
     </configuration>
     <configuration default="true" type="JetRunConfigurationType">
@@ -224,19 +145,19 @@
       </method>
     </configuration>
     <list>
-      <item itemvalue="Gradle.NearbyPerformanceTest" />
-      <item itemvalue="Gradle.PersonServiceTest" />
-      <item itemvalue="Gradle.PersonServiceUnitTest" />
-      <item itemvalue="Gradle.PersonControllerIntegrationTest" />
+      <item itemvalue="HTTP Request.requests | 1. Create New Person (Normal)" />
+      <item itemvalue="HTTP Request.requests | 4. Update Location (Normal)" />
+      <item itemvalue="HTTP Request.requests | 7. Nearby Search (Normal)" />
+      <item itemvalue="HTTP Request.requests | 8. Nearby Search - Invalid Parameter" />
       <item itemvalue="Spring Boot.ApplicationStarter" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="HTTP Request.requests | 1. Create New Person (Normal)" />
+        <item itemvalue="HTTP Request.requests | 4. Update Location (Normal)" />
+        <item itemvalue="HTTP Request.requests | 7. Nearby Search (Normal)" />
         <item itemvalue="Spring Boot.ApplicationStarter" />
-        <item itemvalue="Gradle.PersonServiceTest" />
-        <item itemvalue="Gradle.PersonServiceUnitTest" />
-        <item itemvalue="Gradle.PersonControllerIntegrationTest" />
-        <item itemvalue="Gradle.NearbyPerformanceTest" />
+        <item itemvalue="HTTP Request.requests | 8. Nearby Search - Invalid Parameter" />
       </list>
     </recent_temporary>
   </component>
@@ -265,7 +186,17 @@
       <workItem from="1772343232487" duration="7000" />
       <workItem from="1772344138842" duration="1382000" />
       <workItem from="1772413178202" duration="200000" />
-      <workItem from="1772486136837" duration="521000" />
+      <workItem from="1772486136837" duration="682000" />
+      <workItem from="1772492831787" duration="1089000" />
+      <workItem from="1772496081891" duration="302000" />
+      <workItem from="1772497425783" duration="355000" />
+      <workItem from="1772499801954" duration="747000" />
+      <workItem from="1772528422218" duration="1463000" />
+      <workItem from="1772566945488" duration="10000" />
+      <workItem from="1772578892382" duration="621000" />
+      <workItem from="1772580018511" duration="9564000" />
+      <workItem from="1772592505834" duration="1206000" />
+      <workItem from="1772672675729" duration="2226000" />
     </task>
     <task id="LOCAL-00001" summary="feat: implement resilient spatial search with Redis and PostGIS fallback">
       <option name="closed" value="true" />
@@ -323,7 +254,15 @@
       <option name="project" value="LOCAL" />
       <updated>1772316310411</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="refactor: decouple repository from domain layer">
+      <option name="closed" value="true" />
+      <created>1772486777114</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1772486777114</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -349,7 +288,8 @@
     <MESSAGE value="fix: fix PostGIS distance units by casting to geography" />
     <MESSAGE value="feat: implement Redis caching for security patterns" />
     <MESSAGE value="refactor: implement Observer Pattern for Redis sync using Spring Events" />
-    <option name="LAST_COMMIT_MESSAGE" value="refactor: implement Observer Pattern for Redis sync using Spring Events" />
+    <MESSAGE value="refactor: decouple repository from domain layer" />
+    <option name="LAST_COMMIT_MESSAGE" value="refactor: decouple repository from domain layer" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

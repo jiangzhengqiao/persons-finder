@@ -41,7 +41,7 @@ PUT http://localhost:8080/api/v1/persons/1/location
 Content-Type: application/json
 
 {
-  "latitude": 40.7306,
+  "latitude": 41.7306,
   "longitude": -73.9352
 }
 
@@ -57,7 +57,7 @@ Content-Type: application/json
 
 ### 6. Update Location - ID Not Found
 # Case: Trigger 404 by using a non-existent ID
-PUT http://localhost:8080/api/v1/persons/9999999/location
+PUT http://localhost:8080/api/v1/persons/99999999/location
 Content-Type: application/json
 
 {
@@ -66,7 +66,7 @@ Content-Type: application/json
 }
 
 ### 7. Nearby Search (Normal)
-GET http://localhost:8080/api/v1/persons/nearby?lat=-41.2865&lon=174.7762&radius=100&page=0&size=10
+GET http://localhost:8080/api/v1/persons/nearby?lat=-36.8485&lon=174.7633&radius=100&page=0&size=10
 
 ### 8. Nearby Search - Invalid Parameter
 # Case: Trigger 400 by invalid coordinate or radius

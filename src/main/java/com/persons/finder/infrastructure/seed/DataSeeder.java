@@ -1,5 +1,6 @@
 package com.persons.finder.infrastructure.seed;
 
+import com.persons.finder.utils.GeoShardingUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,10 +26,35 @@ public class DataSeeder implements CommandLineRunner {
     private final JdbcTemplate jdbcTemplate;
 
     private final RedisTemplate<String, String> redisTemplate;
-    private static final String GEO_KEY = "person_locations";
 
     @Value("${app.seed-data:false}") // default false
     private boolean seedData;
+
+    // 在类中定义常量
+    private static final List<City> CITIES = List.of(
+            // --- AUSTRALIA (AU) ---
+            new City("Sydney", -33.8688, 151.2093, 545.0),
+            new City("Melbourne", -37.8136, 144.9631, 535.0),
+            new City("Brisbane", -27.4705, 153.0260, 271.0),
+            new City("Perth", -31.9505, 115.8605, 214.0),
+            new City("Adelaide", -34.9285, 138.6007, 139.0),
+            new City("Gold Coast", -28.0167, 153.4000, 60.8),
+            new City("Canberra", -35.2809, 149.1300, 38.1),
+            new City("Newcastle", -32.9283, 151.7817, 32.2),
+            new City("Hobart", -42.8821, 147.3272, 22.2),
+            new City("Darwin", -12.4634, 130.8456, 13.2),
+
+            // --- NEW ZEALAND (NZ) ---
+            new City("Auckland", -36.8485, 174.7633, 147.0),
+            new City("Christchurch", -43.5321, 172.6362, 38.3),
+            new City("Wellington", -41.2865, 174.7762, 21.6),
+            new City("Hamilton", -37.7870, 175.2793, 17.6),
+            new City("Tauranga", -37.6878, 176.1651, 15.1),
+            new City("Dunedin", -45.8788, 170.5028, 10.6),
+            new City("Napier", -39.4928, 176.9120, 6.5)
+    );
+
+    private final double totalWeight = CITIES.stream().mapToDouble(City::weight).sum();
 
     //    @Async
     @Override
@@ -52,7 +78,7 @@ public class DataSeeder implements CommandLineRunner {
         seedSecurityPatterns();
 
         // 3. write person data in batches
-        seedPersonData();
+        seedTenMillionRecords();
 
         // 4.
         createSpatialIndex();
@@ -72,50 +98,83 @@ public class DataSeeder implements CommandLineRunner {
                 "ON CONFLICT (pattern) DO NOTHING;");
     }
 
-    public void seedPersonData() {
-        redisTemplate.delete(GEO_KEY);
+    public void seedTenMillionRecords() {
+        log.info("Starting massive seed with Sharding: 10 million records...");
+
+        redisTemplate.getConnectionFactory().getConnection().serverCommands().flushDb();
         jdbcTemplate.execute("TRUNCATE TABLE persons RESTART IDENTITY");
 
-        // id(1), name(2), job_title(3), hobbies(4), bio(5), lon(6), lat(7), version(8)
-        String sql = "INSERT INTO persons (id, name, job_title, hobbies, bio, location, version, created_at) " +
-                "VALUES (?, ?, ?, ?, ?, ST_SetSRID(ST_Point(?, ?), 4326), ?, CURRENT_TIMESTAMP)";
+        String sql = "INSERT INTO persons (name, job_title, hobbies, bio, location, version, created_at) " +
+                "VALUES (?, ?, ?, ?, ST_SetSRID(ST_Point(?, ?), 4326), 0, CURRENT_TIMESTAMP)";
 
         Random random = new Random();
-        int totalRecords = 1_000_000;
-        int batchSize = 1000;
+        int totalRecords = 10_000_000;
+        int batchSize = 2500;
 
-        log.info("Starting seed 1 million records...");
+        // Redis shard buffer：Map<ShardKey, Map<MemberId, Point>>
+        Map<String, Map<String, Point>> redisShardedBuffer = new HashMap<>();
 
         for (int i = 0; i < totalRecords / batchSize; i++) {
             List<Object[]> dbBatch = new ArrayList<>();
-            Map<String, Point> redisBatch = new HashMap<>();
-
-            List<Long> ids = jdbcTemplate.queryForList(
-                    "SELECT nextval('persons_id_seq') FROM generate_series(1, " + batchSize + ")", Long.class);
+            long startId = (long) i * batchSize + 1;
 
             for (int j = 0; j < batchSize; j++) {
-                Long id = ids.get(j);
+                City city = getRandomCity(random);
+                double lat = city.lat() + (random.nextGaussian() * 0.15);
+                double lon = city.lon() + (random.nextGaussian() * 0.15);
+                String userId = String.valueOf(startId + j);
 
-                double lon = -180 + (360 * random.nextDouble());
-
-                double lat = -85 + (170 * random.nextDouble());
-
+                // --- Database part ---
                 dbBatch.add(new Object[]{
-                        id, "Person_" + id, "Engineer_" + j, "Hiking, Coding", "Bio", lon, lat, 0L
+                        "User_" + userId, "Engineer", "Coding", "Hi from " + city.name(), lon, lat
                 });
 
-                redisBatch.put(id.toString(), new Point(lon, lat));
+                // --- Redis sharding logic ---
+                String shardKey = GeoShardingUtil.getShardKey(lon, lat);
+                // If this bucket has not been created yet, initialize it
+                redisShardedBuffer.computeIfAbsent(shardKey, k -> new HashMap<>())
+                        .put(userId, new Point(lon, lat));
             }
 
-            // batch
+            // 1. Perform database batch insertion
             jdbcTemplate.batchUpdate(sql, dbBatch);
-            redisTemplate.opsForGeo().add(GEO_KEY, redisBatch);
+
+            // 2. Check the Redis buffer, perform writing and clean up
+            // For the sake of performance, we don’t need to clear all buckets every time it loops. We can process it every few batches, or according to the bucket size.
+            if (i % 10 == 0) { // 每 10 个 DB batch (即 25,000 条数据) 处理一次 Redis 提交
+                flushRedisShards(redisShardedBuffer);
+            }
 
             if ((i + 1) * batchSize % 100_000 == 0) {
-                log.info("Progress: {}/{} records seeded...", (i + 1) * batchSize, totalRecords);
+                log.info("Progress: {} / 10M ({}%)", (i + 1) * batchSize, ((i + 1) * batchSize * 100 / totalRecords));
             }
         }
-        log.info("Seeding completed!");
+
+        // flush all remaining data into Redis
+        flushRedisShards(redisShardedBuffer);
+        log.info("10 Million records with Sharding seeded successfully!");
+    }
+
+    // flush shard data in memory into Redis
+    private void flushRedisShards(Map<String, Map<String, Point>> buffer) {
+        if (buffer.isEmpty()) return;
+
+        buffer.forEach((shardKey, points) -> {
+            if (!points.isEmpty()) {
+                redisTemplate.opsForGeo().add(shardKey, points);
+            }
+        });
+        buffer.clear(); // 必须清空，否则内存会 OOM
+    }
+
+    private City getRandomCity(Random random) {
+        double r = random.nextDouble() * totalWeight;
+        double current = 0;
+        for (City city : CITIES) {
+            current += city.weight();
+            if (r <= current) return city;
+        }
+        return CITIES.get(0);
     }
 
     private void createSpatialIndex() {

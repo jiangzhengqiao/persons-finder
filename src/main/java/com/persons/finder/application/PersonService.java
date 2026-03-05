@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.geo.Point;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,11 +43,19 @@ public class PersonService {
         Person person = personRepository.findById(id)
                 .orElseThrow(() -> new PersonNotFoundException(id));
 
+        Point oldLocation = null;
+        if (person.getLocation() != null) {
+            oldLocation = new Point(
+                    person.getLocation().getLongitude(),
+                    person.getLocation().getLatitude()
+            );
+        }
+
         Location location = Location.fromCoordinates(request.latitude(), request.longitude());
         person.updateLocation(location);
-
+        Point newLocation = new Point(request.longitude(), request.latitude());
         Person saved = personRepository.save(person);
-        eventPublisher.publishEvent(new PersonLocationUpdatedEvent(saved));
+        eventPublisher.publishEvent(new PersonLocationUpdatedEvent(person.getId(), oldLocation, newLocation));
         return personMapper.toResponse(saved);
     }
 
@@ -72,7 +81,8 @@ public class PersonService {
         person.assignBio(bio);
 
         Person saved = personRepository.save(person);
-        eventPublisher.publishEvent(new PersonLocationUpdatedEvent(saved));
+        Point newLocation = new Point(request.longitude(), request.latitude());
+        eventPublisher.publishEvent(new PersonLocationUpdatedEvent(saved.getId(), null, newLocation));
         return personMapper.toResponse(saved);
     }
 }

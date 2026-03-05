@@ -2,6 +2,7 @@ package com.persons.finder.infrastructure.persistence;
 
 import com.persons.finder.domain.model.Person;
 import com.persons.finder.domain.repository.PersonRepository;
+import com.persons.finder.utils.GeoShardingUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,21 +29,39 @@ public class PersonRepositoryImpl implements PersonRepository {
 
     private final JpaPersonRepository jpaRepo;
     private final RedisTemplate<String, String> redisTemplate;
-    private static final String GEO_KEY = "person_locations";
 
     @Value("${app.geo.redis-search-limit:500}")
     private int redisSearchLimit;
 
     @Override
     public Slice<Person> findNearby(double lat, double lon, double radiusKm, Pageable pageable) {
+        List<Person> results = null;
+        String shardKey = GeoShardingUtil.getShardKey(lon, lat);
+        try {
+            results = findWithRedisGEO(lat, lon, radiusKm, pageable, shardKey);
+        } catch (Exception e) {
+            log.error("Redis search failed for shard {}: {}", shardKey, e.getMessage());
+        }
+
+        if (results == null) {
+            log.info("Falling back to PostGIS for [{}, {}]", lat, lon);
+            results = findWithPostgres(lat, lon, radiusKm, pageable);
+        }
+        boolean hasNext = results.size() > pageable.getPageSize();
+        List<Person> content = hasNext ? results.subList(0, pageable.getPageSize()) : results;
+        return new SliceImpl<>(content, pageable, hasNext);
+    }
+
+    private List<Person> findWithRedisGEO(double lat, double lon, double radiusKm, Pageable pageable, String shardKey) {
         try {
             GeoResults<RedisGeoCommands.GeoLocation<String>> geoResults = redisTemplate.opsForGeo()
-                    .search(GEO_KEY,
+                    .search(shardKey,
                             GeoReference.fromCoordinate(lon, lat),
                             new Distance(radiusKm, Metrics.KILOMETERS),
                             RedisGeoCommands.GeoSearchCommandArgs.newGeoSearchArgs().sortAscending()
                                     .limit(redisSearchLimit));
 
+            List<Person> redisPersons = new ArrayList<>();
             if (geoResults != null && !geoResults.getContent().isEmpty()) {
                 List<GeoResult<RedisGeoCommands.GeoLocation<String>>> allResults = geoResults.getContent();
                 int start = (int) pageable.getOffset();
@@ -56,30 +75,27 @@ public class PersonRepositoryImpl implements PersonRepository {
                     Map<Long, Person> personMap = jpaRepo.findAllByIdIn(orderedIds).stream()
                             .collect(Collectors.toMap(Person::getId, p -> p));
 
-                    List<Person> orderedPersons = orderedIds.stream()
+                    redisPersons = orderedIds.stream()
                             .map(personMap::get)
                             .filter(Objects::nonNull)
                             .toList();
-
-                    return new SliceImpl<>(orderedPersons, pageable, allResults.size() > end);
                 }
             }
-            return new SliceImpl<>(Collections.emptyList(), pageable, false);
-
+            return redisPersons;
         } catch (Exception e) {
-            log.error("CRITICAL: Redis search failed. Falling back to PostGIS spatial query for lat:{}, lon:{}", lat, lon, e);
-            double radiusInDegrees = radiusKm / 111.0;
-            List<Person> dbResults = jpaRepo.findNearbyWithPostgis(
-                    lat, lon, radiusInDegrees,
-                    pageable.getPageSize() + 1,
-                    pageable.getOffset()
-            );
-
-            boolean hasNext = dbResults.size() > pageable.getPageSize();
-            List<Person> content = hasNext ? dbResults.subList(0, pageable.getPageSize()) : dbResults;
-
-            return new SliceImpl<>(content, pageable, hasNext);
+            // Fallback
+            log.error("Redis GEOSearch failed: {}", e.getMessage());
+            return null;
         }
+    }
+
+    private List<Person> findWithPostgres(double lat, double lon, double radiusKm, Pageable pageable) {
+        double radiusInDegrees = radiusKm / 111;
+        return jpaRepo.findNearbyWithPostgis(
+                lat, lon, radiusInDegrees,
+                pageable.getPageSize() + 1,
+                pageable.getOffset()
+        );
     }
 
     @Override

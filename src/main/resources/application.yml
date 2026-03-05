@@ -41,6 +41,7 @@ spring:
       ddl-auto: update
     properties:
       hibernate:
+        format_sql: false
         dialect: org.hibernate.spatial.dialect.postgis.PostgisDialect
         jdbc:
           batch_size: 50
@@ -52,7 +53,7 @@ spring:
   redis:
     host: localhost
     port: 6379
-    timeout: 200ms
+    timeout: 100ms
     lettuce:
       shutdown-timeout: 100ms
       pool:
@@ -99,3 +100,4 @@ logging:
     org.hibernate.SQL: INFO
     org.springframework.web: INFO
     com.zaxxer.hikari: INFO
+    org.hibernate.orm.jdbc.bind: trace
